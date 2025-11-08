@@ -566,6 +566,659 @@ img{max-width:100%;height:auto}
   box-shadow:0 4px 15px rgba(124,58,237,0.3);
 }
 
+/* Pledge List Section */
+.pledge-list{
+  max-width:1200px;
+  margin:60px auto;
+  padding:40px 20px;
+}
+.pledge-list-container{
+  background:linear-gradient(135deg, rgba(124,58,237,0.1), rgba(34,211,238,0.1));
+  border:2px solid rgba(124,58,237,0.3);
+  border-radius:24px;
+  padding:48px 32px;
+  position:relative;
+  overflow:hidden;
+}
+.pledge-list-container::before{
+  content:'';
+  position:absolute;
+  top:-50%;
+  left:-50%;
+  width:200%;
+  height:200%;
+  background:radial-gradient(circle, rgba(34,211,238,0.1) 0%, transparent 70%);
+  animation:rotate 25s linear infinite;
+}
+.pledge-list-header{
+  text-align:center;
+  margin-bottom:40px;
+  position:relative;
+  z-index:1;
+}
+.pledge-list-icon{
+  font-size:64px;
+  margin-bottom:16px;
+  animation:bounce 2s infinite;
+}
+.pledge-list-header h2{
+  font-size:36px;
+  font-weight:700;
+  margin:0 0 12px;
+  background:linear-gradient(135deg, #22d3ee, #7c3aed);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.pledge-list-subtitle{
+  font-size:18px;
+  color:var(--muted);
+  max-width:700px;
+  margin:0 auto;
+  line-height:1.6;
+}
+.pledge-list-content{
+  position:relative;
+  z-index:1;
+}
+.pledges-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:20px;
+  margin-bottom:40px;
+}
+.pledge-item{
+  background:var(--panel);
+  border:2px solid #202634;
+  border-radius:16px;
+  padding:24px;
+  cursor:pointer;
+  transition:all 0.3s ease;
+  position:relative;
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+}
+.pledge-item:hover{
+  border-color:#7c3aed;
+  transform:translateY(-4px);
+  box-shadow:0 8px 20px rgba(124,58,237,0.2);
+}
+.pledge-item.selected{
+  border-color:#7c3aed;
+  background:linear-gradient(135deg, rgba(124,58,237,0.1), rgba(34,211,238,0.1));
+  box-shadow:0 4px 15px rgba(124,58,237,0.3);
+}
+.pledge-item.committed{
+  border-color:#22d3ee;
+  background:linear-gradient(135deg, rgba(34,211,238,0.1), rgba(16,185,129,0.1));
+  opacity:0.8;
+  cursor:not-allowed;
+}
+.pledge-item.completed{
+  border-color:#10b981;
+}
+.pledge-item.committed:hover{
+  transform:none;
+  box-shadow:none;
+}
+.pledge-item-badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:11px;
+  font-weight:600;
+  margin-top:12px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+.pledge-item-badge.active{
+  background:rgba(34,211,238,0.2);
+  color:#22d3ee;
+  border:1px solid rgba(34,211,238,0.3);
+}
+.pledge-item-badge.completed{
+  background:rgba(16,185,129,0.2);
+  color:#10b981;
+  border:1px solid rgba(16,185,129,0.3);
+}
+.pledge-item-checkbox{
+  width:24px;
+  height:24px;
+  border:2px solid #22293a;
+  border-radius:6px;
+  background:#0f1420;
+  cursor:pointer;
+  flex-shrink:0;
+  margin-top:2px;
+  position:relative;
+  transition:all 0.3s ease;
+}
+.pledge-item.selected .pledge-item-checkbox{
+  background:linear-gradient(135deg, #22d3ee, #7c3aed);
+  border-color:#7c3aed;
+}
+.pledge-item.selected .pledge-item-checkbox::after{
+  content:'✓';
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  color:#0b0f16;
+  font-size:16px;
+  font-weight:bold;
+}
+.pledge-item-content{
+  flex:1;
+}
+.pledge-item-icon{
+  font-size:32px;
+  margin-bottom:8px;
+  display:inline-block;
+}
+.pledge-item-title{
+  font-size:18px;
+  font-weight:700;
+  color:var(--text);
+  margin:0 0 8px;
+}
+.pledge-item-description{
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.5;
+  margin:0;
+}
+.pledge-item-category{
+  display:inline-block;
+  padding:4px 10px;
+  background:rgba(124,58,237,0.2);
+  border:1px solid rgba(124,58,237,0.3);
+  border-radius:12px;
+  font-size:11px;
+  color:var(--brand-2);
+  font-weight:600;
+  margin-top:12px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+.selected-pledges-section{
+  background:var(--panel);
+  border:2px solid rgba(124,58,237,0.3);
+  border-radius:20px;
+  padding:32px;
+  margin-top:32px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.2);
+}
+.selected-pledges-section h3{
+  font-size:24px;
+  font-weight:700;
+  margin:0 0 20px;
+  background:linear-gradient(135deg, #22d3ee, #7c3aed);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.selected-pledges-list{
+  display:grid;
+  gap:12px;
+  margin-bottom:24px;
+}
+.selected-pledge-item{
+  padding:16px;
+  background:#0f1420;
+  border:1px solid #22293a;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.selected-pledge-item-text{
+  flex:1;
+  font-size:15px;
+  color:var(--text);
+  font-weight:600;
+}
+.selected-pledge-item-remove{
+  padding:6px 12px;
+  background:rgba(239,68,68,0.2);
+  border:1px solid rgba(239,68,68,0.3);
+  border-radius:8px;
+  color:#ef4444;
+  font-size:13px;
+  cursor:pointer;
+  transition:all 0.3s ease;
+}
+.selected-pledge-item-remove:hover{
+  background:rgba(239,68,68,0.3);
+  transform:scale(1.05);
+}
+.pledge-actions-bar{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.pledge-commit-btn, .pledge-clear-btn{
+  padding:14px 28px;
+  font-size:16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.pledge-commit-btn{
+  box-shadow:0 4px 15px rgba(124,58,237,0.3);
+}
+.my-pledges-section{
+  background:var(--panel);
+  border:2px solid #202634;
+  border-radius:20px;
+  padding:32px;
+  margin-top:32px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.2);
+}
+.my-pledges-section h3{
+  font-size:24px;
+  font-weight:700;
+  margin:0 0 20px;
+  background:linear-gradient(135deg, #22d3ee, #7c3aed);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.my-pledges-list{
+  display:grid;
+  gap:16px;
+}
+.my-pledge-card{
+  background:#0f1420;
+  border:2px solid #22293a;
+  border-radius:16px;
+  padding:20px;
+  position:relative;
+}
+.my-pledge-card.completed{
+  border-color:#10b981;
+  background:linear-gradient(135deg, rgba(16,185,129,0.1), rgba(52,211,153,0.1));
+}
+.my-pledge-card-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.my-pledge-card-title{
+  font-size:18px;
+  font-weight:700;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.my-pledge-card-icon{
+  font-size:24px;
+}
+.my-pledge-card-status{
+  padding:6px 12px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+}
+.my-pledge-card-status.active{
+  background:rgba(34,211,238,0.2);
+  color:#22d3ee;
+  border:1px solid rgba(34,211,238,0.3);
+}
+.my-pledge-card-status.completed{
+  background:rgba(16,185,129,0.2);
+  color:#10b981;
+  border:1px solid rgba(16,185,129,0.3);
+}
+.my-pledge-card-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid #202634;
+  font-size:13px;
+  color:var(--muted);
+}
+.my-pledge-card-actions{
+  display:flex;
+  gap:8px;
+}
+.my-pledge-card-btn{
+  padding:6px 12px;
+  background:var(--panel);
+  border:1px solid #22293a;
+  border-radius:8px;
+  color:var(--text);
+  font-size:12px;
+  cursor:pointer;
+  transition:all 0.3s ease;
+}
+.my-pledge-card-btn:hover{
+  border-color:#7c3aed;
+  background:#1b2130;
+}
+.my-pledge-card-btn.complete{
+  background:rgba(16,185,129,0.2);
+  border-color:#10b981;
+  color:#10b981;
+}
+.my-pledge-card-btn.complete:hover{
+  background:rgba(16,185,129,0.3);
+}
+
+/* Pledge Photo Section */
+.pledge-photo{
+  max-width:1200px;
+  margin:60px auto;
+  padding:40px 20px;
+}
+.pledge-photo-container{
+  background:linear-gradient(135deg, rgba(124,58,237,0.1), rgba(34,211,238,0.1));
+  border:2px solid rgba(124,58,237,0.3);
+  border-radius:24px;
+  padding:48px 32px;
+  position:relative;
+  overflow:hidden;
+}
+.pledge-photo-container::before{
+  content:'';
+  position:absolute;
+  top:-50%;
+  right:-50%;
+  width:200%;
+  height:200%;
+  background:radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+  animation:rotate 30s linear infinite;
+}
+.pledge-photo-header{
+  text-align:center;
+  margin-bottom:40px;
+  position:relative;
+  z-index:1;
+}
+.pledge-photo-icon{
+  font-size:64px;
+  margin-bottom:16px;
+  animation:bounce 2s infinite;
+}
+.pledge-photo-header h2{
+  font-size:36px;
+  font-weight:700;
+  margin:0 0 12px;
+  background:linear-gradient(135deg, #22d3ee, #7c3aed);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.pledge-photo-subtitle{
+  font-size:18px;
+  color:var(--muted);
+  max-width:600px;
+  margin:0 auto;
+  line-height:1.6;
+}
+.pledge-photo-content{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:32px;
+  position:relative;
+  z-index:1;
+}
+.pledge-form-section{
+  background:var(--panel);
+  border:2px solid #202634;
+  border-radius:20px;
+  padding:32px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.2);
+}
+.pledge-input-group{
+  margin-bottom:24px;
+}
+.pledge-input-group label{
+  display:block;
+  font-size:16px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:12px;
+}
+.pledge-input-group textarea{
+  width:100%;
+  padding:16px;
+  background:#0f1420;
+  border:2px solid #22293a;
+  border-radius:12px;
+  color:var(--text);
+  font-size:15px;
+  font-family:inherit;
+  resize:vertical;
+  transition:border-color 0.3s ease;
+  box-sizing:border-box;
+}
+.pledge-input-group textarea:focus{
+  outline:none;
+  border-color:#7c3aed;
+  box-shadow:0 0 0 3px rgba(124,58,237,0.1);
+}
+.pledge-input-group textarea::placeholder{
+  color:var(--muted);
+}
+.char-count{
+  text-align:right;
+  font-size:12px;
+  color:var(--muted);
+  margin-top:8px;
+}
+.camera-preview-container{
+  width:100%;
+  aspect-ratio:4/3;
+  background:#0f1420;
+  border:2px dashed #22293a;
+  border-radius:16px;
+  position:relative;
+  overflow:hidden;
+  margin-bottom:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.camera-placeholder{
+  text-align:center;
+  color:var(--muted);
+  padding:40px;
+}
+.placeholder-icon{
+  font-size:64px;
+  margin-bottom:12px;
+  opacity:0.5;
+}
+.camera-placeholder p{
+  font-size:14px;
+  margin:0;
+}
+#videoElement{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.photo-preview{
+  position:relative;
+  width:100%;
+  height:100%;
+}
+.photo-preview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:16px;
+}
+.remove-photo{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(239,68,68,0.9);
+  border:none;
+  color:#fff;
+  font-size:24px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.3s ease;
+  z-index:10;
+}
+.remove-photo:hover{
+  background:rgba(239,68,68,1);
+  transform:scale(1.1);
+}
+.camera-controls{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.camera-btn{
+  flex:1;
+  min-width:120px;
+  padding:14px 20px;
+  background:var(--panel);
+  border:2px solid #22293a;
+  border-radius:12px;
+  color:var(--text);
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:all 0.3s ease;
+}
+.camera-btn:hover{
+  border-color:#7c3aed;
+  background:#1b2130;
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(124,58,237,0.2);
+}
+.camera-btn.capture{
+  background:linear-gradient(135deg, #22d3ee, #7c3aed);
+  color:#0b0f16;
+  border:none;
+}
+.camera-btn.capture:hover{
+  transform:translateY(-2px) scale(1.05);
+  box-shadow:0 6px 20px rgba(124,58,237,0.4);
+}
+.camera-btn span{
+  font-size:20px;
+}
+.pledge-actions{
+  margin-top:32px;
+  text-align:center;
+}
+.pledge-submit-btn{
+  padding:16px 32px;
+  font-size:16px;
+  width:100%;
+  max-width:400px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  box-shadow:0 4px 15px rgba(124,58,237,0.3);
+}
+.pledge-submit-btn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+  transform:none;
+}
+.pledge-submit-btn:disabled:hover{
+  transform:none;
+  filter:none;
+}
+.pledge-hint{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:12px;
+}
+.pledge-gallery-section{
+  background:var(--panel);
+  border:2px solid #202634;
+  border-radius:20px;
+  padding:32px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.2);
+  max-height:800px;
+  overflow-y:auto;
+}
+.pledge-gallery-section h3{
+  font-size:24px;
+  font-weight:700;
+  margin:0 0 24px;
+  text-align:center;
+  background:linear-gradient(135deg, #22d3ee, #7c3aed);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.pledge-gallery{
+  display:grid;
+  gap:20px;
+}
+.no-pledges{
+  text-align:center;
+  color:var(--muted);
+  padding:40px;
+  font-size:15px;
+}
+.pledge-card{
+  background:#0f1420;
+  border:2px solid #22293a;
+  border-radius:16px;
+  padding:20px;
+  transition:all 0.3s ease;
+}
+.pledge-card:hover{
+  border-color:#7c3aed;
+  transform:translateY(-4px);
+  box-shadow:0 8px 20px rgba(0,0,0,0.3);
+}
+.pledge-card-image{
+  width:100%;
+  aspect-ratio:4/3;
+  border-radius:12px;
+  object-fit:cover;
+  margin-bottom:16px;
+  border:1px solid #202634;
+}
+.pledge-card-text{
+  font-size:15px;
+  color:var(--text);
+  line-height:1.6;
+  margin-bottom:12px;
+  min-height:60px;
+}
+.pledge-card-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:12px;
+  color:var(--muted);
+  padding-top:12px;
+  border-top:1px solid #202634;
+}
+.pledge-card-author{
+  font-weight:600;
+  color:var(--brand-2);
+}
+
 /* Footer */
 .site-footer{padding:18px 20px;border-top:1px solid #202634;color:var(--muted);text-align:center}
 
@@ -1255,6 +1908,78 @@ img{max-width:100%;height:auto}
   .pledge-feature {
     padding: 10px 16px;
     font-size: 14px;
+  }
+  
+  /* Pledge List Mobile */
+  .pledge-list {
+    margin: 40px auto;
+    padding: 24px 15px;
+  }
+  .pledge-list-container {
+    padding: 32px 20px;
+  }
+  .pledge-list-header h2 {
+    font-size: 24px;
+  }
+  .pledge-list-subtitle {
+    font-size: 16px;
+  }
+  .pledge-list-icon {
+    font-size: 48px;
+  }
+  .pledges-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .pledge-item {
+    padding: 20px;
+  }
+  .selected-pledges-section {
+    padding: 24px 20px;
+  }
+  .pledge-actions-bar {
+    flex-direction: column;
+  }
+  .pledge-commit-btn, .pledge-clear-btn {
+    width: 100%;
+  }
+  .my-pledges-section {
+    padding: 24px 20px;
+  }
+  
+  /* Pledge Photo Mobile */
+  .pledge-photo {
+    margin: 40px auto;
+    padding: 24px 15px;
+  }
+  .pledge-photo-container {
+    padding: 32px 20px;
+  }
+  .pledge-photo-header h2 {
+    font-size: 24px;
+  }
+  .pledge-photo-subtitle {
+    font-size: 16px;
+  }
+  .pledge-photo-icon {
+    font-size: 48px;
+  }
+  .pledge-photo-content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .pledge-form-section {
+    padding: 24px 20px;
+  }
+  .pledge-gallery-section {
+    padding: 24px 20px;
+    max-height: 600px;
+  }
+  .camera-controls {
+    flex-direction: column;
+  }
+  .camera-btn {
+    width: 100%;
   }
   
   /* Reviews Mobile */

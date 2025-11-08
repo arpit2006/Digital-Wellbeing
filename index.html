@@ -186,6 +186,40 @@
         <p id="reviewLoginHint" class="muted hidden">Login to share your review.</p>
       </div>
     </section>
+    <section class="pledge-list" aria-label="Digital Wellness Pledges">
+      <div class="pledge-list-container">
+        <div class="pledge-list-header">
+          <div class="pledge-list-icon">🤝</div>
+          <h2>Take Your Digital Wellness Pledge</h2>
+          <p class="pledge-list-subtitle">Choose one or more pledges to commit to. Build healthy digital habits one commitment at a time.</p>
+        </div>
+
+        <div class="pledge-list-content">
+          <div class="pledges-grid" id="pledgesGrid">
+            <!-- Pledges will be generated here -->
+          </div>
+
+          <div class="selected-pledges-section" id="selectedPledgesSection" style="display:none;">
+            <h3>Your Selected Pledges</h3>
+            <div class="selected-pledges-list" id="selectedPledgesList"></div>
+            <div class="pledge-actions-bar">
+              <button class="cta pledge-commit-btn" id="commitPledgesBtn">
+                <span>✨</span> Commit to These Pledges
+              </button>
+              <button class="cta secondary pledge-clear-btn" id="clearPledgesBtn">
+                Clear Selection
+              </button>
+            </div>
+          </div>
+
+          <div class="my-pledges-section" id="myPledgesSection" style="display:none;">
+            <h3>My Active Pledges</h3>
+            <div class="my-pledges-list" id="myPledgesList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="pledge" aria-label="7-day mindful phone challenge">
       <div class="pledge-inner">
         <div class="pledge-icon">📱➡️✨</div>
@@ -197,6 +231,68 @@
           <div class="pledge-feature">✓ Personalized tips</div>
         </div>
         <a class="cta pledge-cta" href="quiz.html">Take the first step</a>
+      </div>
+    </section>
+
+    <section class="pledge-photo" aria-label="Take Your Digital Wellness Pledge">
+      <div class="pledge-photo-container">
+        <div class="pledge-photo-header">
+          <div class="pledge-photo-icon">📸</div>
+          <h2>Take Your Digital Wellness Pledge</h2>
+          <p class="pledge-photo-subtitle">Commit to healthier digital habits by taking a photo with your pledge. Share your commitment and inspire others!</p>
+        </div>
+
+        <div class="pledge-photo-content">
+          <div class="pledge-form-section">
+            <div class="pledge-input-group">
+              <label for="pledgeText">Write Your Pledge</label>
+              <textarea id="pledgeText" placeholder="e.g., I pledge to reduce my screen time by 2 hours daily and spend more time with family..." rows="4" maxlength="300"></textarea>
+              <div class="char-count"><span id="charCount">0</span>/300 characters</div>
+            </div>
+
+            <div class="pledge-camera-section">
+              <div class="camera-preview-container" id="cameraContainer">
+                <video id="videoElement" autoplay playsinline style="display:none;"></video>
+                <canvas id="canvasElement" style="display:none;"></canvas>
+                <div class="camera-placeholder" id="cameraPlaceholder">
+                  <div class="placeholder-icon">📷</div>
+                  <p>Your pledge photo will appear here</p>
+                </div>
+                <div class="photo-preview" id="photoPreview" style="display:none;">
+                  <img id="previewImage" alt="Pledge photo preview">
+                  <button class="remove-photo" id="removePhoto" aria-label="Remove photo">×</button>
+                </div>
+              </div>
+
+              <div class="camera-controls">
+                <button class="camera-btn" id="startCameraBtn">
+                  <span>📷</span> Start Camera
+                </button>
+                <button class="camera-btn capture" id="captureBtn" style="display:none;">
+                  <span>📸</span> Capture Photo
+                </button>
+                <button class="camera-btn" id="uploadPhotoBtn">
+                  <span>📁</span> Upload Photo
+                </button>
+                <input type="file" id="fileInput" accept="image/*" style="display:none;">
+              </div>
+            </div>
+
+            <div class="pledge-actions">
+              <button class="cta pledge-submit-btn" id="submitPledgeBtn" disabled>
+                <span>✨</span> Submit My Pledge
+              </button>
+              <p class="pledge-hint">Login required to save your pledge</p>
+            </div>
+          </div>
+
+          <div class="pledge-gallery-section">
+            <h3>Recent Pledges</h3>
+            <div class="pledge-gallery" id="pledgeGallery">
+              <p class="no-pledges">No pledges yet. Be the first to make a commitment!</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     <section class="faq" aria-label="Frequently Asked Questions">
@@ -253,6 +349,7 @@
       initFAQ();
       initDailyTip();
       initAnimatedCounters();
+      initPledgePhoto();
     });
 
     // Animated counter for hero stats

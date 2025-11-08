@@ -1161,4 +1161,713 @@ function triggerConfetti() {
   animate();
 }
 
+// Pledge Photo Section
+function initPledgePhoto() {
+  const PLEDGE_STORAGE_KEY = 'dw_pledges';
+  
+  const pledgeText = document.getElementById('pledgeText');
+  const charCount = document.getElementById('charCount');
+  const startCameraBtn = document.getElementById('startCameraBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
+  const fileInput = document.getElementById('fileInput');
+  const videoElement = document.getElementById('videoElement');
+  const canvasElement = document.getElementById('canvasElement');
+  const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+  const photoPreview = document.getElementById('photoPreview');
+  const previewImage = document.getElementById('previewImage');
+  const removePhotoBtn = document.getElementById('removePhoto');
+  const submitPledgeBtn = document.getElementById('submitPledgeBtn');
+  const pledgeGallery = document.getElementById('pledgeGallery');
+  
+  let stream = null;
+  let capturedPhoto = null;
+
+  // Character counter
+  if (pledgeText && charCount) {
+    pledgeText.addEventListener('input', () => {
+      const count = pledgeText.value.length;
+      charCount.textContent = count;
+      updateSubmitButton();
+    });
+  }
+
+  // Start camera
+  if (startCameraBtn && videoElement) {
+    startCameraBtn.addEventListener('click', async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } 
+        });
+        videoElement.srcObject = stream;
+        videoElement.style.display = 'block';
+        cameraPlaceholder.style.display = 'none';
+        photoPreview.style.display = 'none';
+        captureBtn.style.display = 'flex';
+        startCameraBtn.textContent = '📹 Camera Active';
+        startCameraBtn.disabled = true;
+      } catch (error) {
+        alert('Unable to access camera. Please check permissions or try uploading a photo instead.');
+        console.error('Camera error:', error);
+      }
+    });
+  }
+
+  // Capture photo
+  if (captureBtn && canvasElement && videoElement && previewImage) {
+    captureBtn.addEventListener('click', () => {
+      const context = canvasElement.getContext('2d');
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+      context.drawImage(videoElement, 0, 0);
+      
+      capturedPhoto = canvasElement.toDataURL('image/jpeg', 0.8);
+      previewImage.src = capturedPhoto;
+      
+      videoElement.style.display = 'none';
+      photoPreview.style.display = 'block';
+      cameraPlaceholder.style.display = 'none';
+      
+      // Stop camera stream
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      
+      startCameraBtn.textContent = '📷 Start Camera';
+      startCameraBtn.disabled = false;
+      captureBtn.style.display = 'none';
+      updateSubmitButton();
+    });
+  }
+
+  // Upload photo
+  if (uploadPhotoBtn && fileInput && previewImage) {
+    uploadPhotoBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          capturedPhoto = event.target.result;
+          previewImage.src = capturedPhoto;
+          photoPreview.style.display = 'block';
+          cameraPlaceholder.style.display = 'none';
+          if (videoElement) videoElement.style.display = 'none';
+          updateSubmitButton();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('Please select a valid image file.');
+      }
+    });
+  }
+
+  // Remove photo
+  if (removePhotoBtn) {
+    removePhotoBtn.addEventListener('click', () => {
+      capturedPhoto = null;
+      photoPreview.style.display = 'none';
+      cameraPlaceholder.style.display = 'block';
+      if (videoElement) videoElement.style.display = 'none';
+      if (fileInput) fileInput.value = '';
+      
+      // Stop camera if active
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      
+      if (startCameraBtn) {
+        startCameraBtn.textContent = '📷 Start Camera';
+        startCameraBtn.disabled = false;
+      }
+      if (captureBtn) captureBtn.style.display = 'none';
+      updateSubmitButton();
+    });
+  }
+
+  // Update submit button state
+  function updateSubmitButton() {
+    if (!submitPledgeBtn) return;
+    const hasText = pledgeText && pledgeText.value.trim().length > 0;
+    const hasPhoto = capturedPhoto !== null;
+    const isLoggedIn = getSession() !== null;
+    
+    submitPledgeBtn.disabled = !(hasText && hasPhoto && isLoggedIn);
+    
+    if (!isLoggedIn) {
+      submitPledgeBtn.title = 'Please login to submit your pledge';
+    } else if (!hasText) {
+      submitPledgeBtn.title = 'Please write your pledge';
+    } else if (!hasPhoto) {
+      submitPledgeBtn.title = 'Please take or upload a photo';
+    } else {
+      submitPledgeBtn.title = '';
+    }
+  }
+
+  // Submit pledge
+  if (submitPledgeBtn) {
+    submitPledgeBtn.addEventListener('click', () => {
+      const user = getCurrentUser();
+      if (!user) {
+        alert('Please login to submit your pledge.');
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      if (!pledgeText || !pledgeText.value.trim()) {
+        alert('Please write your pledge.');
+        return;
+      }
+      
+      if (!capturedPhoto) {
+        alert('Please take or upload a photo.');
+        return;
+      }
+      
+      // Save pledge
+      const pledges = getPledges();
+      const newPledge = {
+        id: Date.now().toString(),
+        userId: user.email,
+        userName: user.name,
+        text: pledgeText.value.trim(),
+        photo: capturedPhoto,
+        timestamp: Date.now(),
+        date: new Date().toLocaleDateString()
+      };
+      
+      pledges.unshift(newPledge);
+      // Keep only last 50 pledges
+      if (pledges.length > 50) {
+        pledges.splice(50);
+      }
+      savePledges(pledges);
+      
+      // Reset form
+      if (pledgeText) pledgeText.value = '';
+      if (charCount) charCount.textContent = '0';
+      capturedPhoto = null;
+      photoPreview.style.display = 'none';
+      cameraPlaceholder.style.display = 'block';
+      if (fileInput) fileInput.value = '';
+      
+      // Show success message
+      alert('✅ Your pledge has been submitted successfully!');
+      
+      // Refresh gallery
+      renderPledgeGallery();
+      updateSubmitButton();
+    });
+  }
+
+  // Get pledges from localStorage
+  function getPledges() {
+    try {
+      return JSON.parse(localStorage.getItem(PLEDGE_STORAGE_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  // Save pledges to localStorage
+  function savePledges(pledges) {
+    localStorage.setItem(PLEDGE_STORAGE_KEY, JSON.stringify(pledges));
+  }
+
+  // Render pledge gallery
+  function renderPledgeGallery() {
+    if (!pledgeGallery) return;
+    
+    const pledges = getPledges();
+    
+    if (pledges.length === 0) {
+      pledgeGallery.innerHTML = '<p class="no-pledges">No pledges yet. Be the first to make a commitment!</p>';
+      return;
+    }
+    
+    pledgeGallery.innerHTML = pledges.map(pledge => `
+      <div class="pledge-card">
+        <img src="${pledge.photo}" alt="Pledge photo" class="pledge-card-image" loading="lazy">
+        <div class="pledge-card-text">${escapeHtml(pledge.text)}</div>
+        <div class="pledge-card-meta">
+          <span class="pledge-card-author">${escapeHtml(pledge.userName)}</span>
+          <span>${pledge.date}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Check login status and update button
+  function checkLoginStatus() {
+    updateSubmitButton();
+    // Update hint text
+    const hint = document.querySelector('.pledge-hint');
+    if (hint) {
+      const isLoggedIn = getSession() !== null;
+      hint.textContent = isLoggedIn 
+        ? 'Ready to submit your pledge!' 
+        : 'Login required to save your pledge';
+    }
+  }
+
+  // Initial render
+  renderPledgeGallery();
+  checkLoginStatus();
+  
+  // Check login status periodically (will be improved with auth events)
+  const statusInterval = setInterval(() => {
+    checkLoginStatus();
+  }, 2000);
+  
+  // Clean up interval when page unloads
+  window.addEventListener('beforeunload', () => {
+    if (statusInterval) clearInterval(statusInterval);
+    // Stop camera stream if active
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+  });
+}
+
+// Pledge List Section
+function initPledgeList() {
+  const USER_PLEDGES_STORAGE_KEY = 'dw_user_pledges';
+  
+  // Predefined list of pledges
+  const predefinedPledges = [
+    {
+      id: 'pledge-1',
+      icon: '📱',
+      title: 'Reduce Daily Screen Time',
+      description: 'I will reduce my daily screen time by at least 2 hours and use that time for physical activities or hobbies.',
+      category: 'Time Management'
+    },
+    {
+      id: 'pledge-2',
+      icon: '😴',
+      title: 'No Phones Before Bed',
+      description: 'I will not use my phone for at least 1 hour before bedtime to improve my sleep quality.',
+      category: 'Sleep Health'
+    },
+    {
+      id: 'pledge-3',
+      icon: '👨‍👩‍👧‍👦',
+      title: 'Tech-Free Family Time',
+      description: 'I will keep my phone away during meals and family gatherings to be more present with loved ones.',
+      category: 'Relationships'
+    },
+    {
+      id: 'pledge-4',
+      icon: '🎯',
+      title: 'Focus Without Distractions',
+      description: 'I will turn off notifications and keep my phone in another room when working or studying.',
+      category: 'Productivity'
+    },
+    {
+      id: 'pledge-5',
+      icon: '🚶',
+      title: 'Phone-Free Walks',
+      description: 'I will go for at least one walk per day without my phone to enjoy nature and clear my mind.',
+      category: 'Wellness'
+    },
+    {
+      id: 'pledge-6',
+      icon: '📚',
+      title: 'Read Instead of Scroll',
+      description: 'I will replace 30 minutes of social media scrolling with reading a book or article each day.',
+      category: 'Personal Growth'
+    },
+    {
+      id: 'pledge-7',
+      icon: '🧘',
+      title: 'Morning Meditation',
+      description: 'I will start each day with 10 minutes of meditation or mindfulness instead of immediately checking my phone.',
+      category: 'Mindfulness'
+    },
+    {
+      id: 'pledge-8',
+      icon: '🏋️',
+      title: 'Exercise Before Social Media',
+      description: 'I will complete my daily exercise routine before spending time on social media or entertainment apps.',
+      category: 'Health'
+    },
+    {
+      id: 'pledge-9',
+      icon: '💬',
+      title: 'Meaningful Conversations',
+      description: 'I will have at least one face-to-face meaningful conversation daily without checking my phone.',
+      category: 'Relationships'
+    },
+    {
+      id: 'pledge-10',
+      icon: '🌙',
+      title: 'Digital Sunset',
+      description: 'I will stop using all digital devices 2 hours before my intended sleep time.',
+      category: 'Sleep Health'
+    },
+    {
+      id: 'pledge-11',
+      icon: '🎨',
+      title: 'Creative Time',
+      description: 'I will dedicate 1 hour daily to creative activities (drawing, writing, music) without digital distractions.',
+      category: 'Personal Growth'
+    },
+    {
+      id: 'pledge-12',
+      icon: '📵',
+      title: 'Weekend Digital Detox',
+      description: 'I will have one day per week where I limit my phone use to essential calls and messages only.',
+      category: 'Balance'
+    }
+  ];
+  
+  const pledgesGrid = document.getElementById('pledgesGrid');
+  const selectedPledgesSection = document.getElementById('selectedPledgesSection');
+  const selectedPledgesList = document.getElementById('selectedPledgesList');
+  const commitPledgesBtn = document.getElementById('commitPledgesBtn');
+  const clearPledgesBtn = document.getElementById('clearPledgesBtn');
+  const myPledgesSection = document.getElementById('myPledgesSection');
+  const myPledgesList = document.getElementById('myPledgesList');
+  
+  let selectedPledges = new Set();
+  
+  // Render pledge items
+  function renderPledges() {
+    if (!pledgesGrid) return;
+    
+    const user = getCurrentUser();
+    const userPledges = user ? getUserPledges().filter(p => 
+      p.userId === user.email && p.status !== 'archived'
+    ) : [];
+    const committedPledgeIds = new Set(userPledges.map(p => p.pledgeId));
+    
+    pledgesGrid.innerHTML = predefinedPledges.map(pledge => {
+      const isCommitted = committedPledgeIds.has(pledge.id);
+      const userPledge = userPledges.find(p => p.pledgeId === pledge.id);
+      const isCompleted = userPledge && userPledge.status === 'completed';
+      
+      return `
+        <div class="pledge-item ${isCommitted ? 'committed' : ''} ${isCompleted ? 'completed' : ''}" data-pledge-id="${pledge.id}">
+          <div class="pledge-item-checkbox"></div>
+          <div class="pledge-item-content">
+            <div class="pledge-item-icon">${pledge.icon}</div>
+            <h4 class="pledge-item-title">${escapeHtml(pledge.title)}</h4>
+            <p class="pledge-item-description">${escapeHtml(pledge.description)}</p>
+            <span class="pledge-item-category">${escapeHtml(pledge.category)}</span>
+            ${isCommitted ? `<div class="pledge-item-badge ${isCompleted ? 'completed' : 'active'}">${isCompleted ? '✓ Completed' : '✓ Committed'}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    // Add click listeners
+    const pledgeItems = pledgesGrid.querySelectorAll('.pledge-item');
+    pledgeItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const pledgeId = item.getAttribute('data-pledge-id');
+        const isCommitted = committedPledgeIds.has(pledgeId);
+        
+        // Don't allow selecting already committed pledges
+        if (!isCommitted) {
+          togglePledge(pledgeId);
+        } else {
+          alert('You have already committed to this pledge. Check "My Active Pledges" section below.');
+        }
+      });
+    });
+  }
+  
+  // Toggle pledge selection
+  function togglePledge(pledgeId) {
+    if (selectedPledges.has(pledgeId)) {
+      selectedPledges.delete(pledgeId);
+    } else {
+      selectedPledges.add(pledgeId);
+    }
+    
+    updatePledgeUI();
+    updateSelectedPledgesList();
+  }
+  
+  // Update pledge UI
+  function updatePledgeUI() {
+    const pledgeItems = pledgesGrid.querySelectorAll('.pledge-item');
+    pledgeItems.forEach(item => {
+      const pledgeId = item.getAttribute('data-pledge-id');
+      if (selectedPledges.has(pledgeId)) {
+        item.classList.add('selected');
+      } else {
+        item.classList.remove('selected');
+      }
+    });
+    
+    if (selectedPledges.size > 0) {
+      selectedPledgesSection.style.display = 'block';
+    } else {
+      selectedPledgesSection.style.display = 'none';
+    }
+  }
+  
+  // Update selected pledges list
+  function updateSelectedPledgesList() {
+    if (!selectedPledgesList) return;
+    
+    if (selectedPledges.size === 0) {
+      selectedPledgesList.innerHTML = '';
+      return;
+    }
+    
+    selectedPledgesList.innerHTML = Array.from(selectedPledges).map(pledgeId => {
+      const pledge = predefinedPledges.find(p => p.id === pledgeId);
+      if (!pledge) return '';
+      return `
+        <div class="selected-pledge-item">
+          <span class="selected-pledge-item-text">${escapeHtml(pledge.title)}</span>
+          <button class="selected-pledge-item-remove" data-pledge-id="${pledgeId}">Remove</button>
+        </div>
+      `;
+    }).join('');
+    
+    // Add remove listeners
+    selectedPledgesList.querySelectorAll('.selected-pledge-item-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pledgeId = btn.getAttribute('data-pledge-id');
+        selectedPledges.delete(pledgeId);
+        updatePledgeUI();
+        updateSelectedPledgesList();
+      });
+    });
+  }
+  
+  // Clear all selections
+  if (clearPledgesBtn) {
+    clearPledgesBtn.addEventListener('click', () => {
+      selectedPledges.clear();
+      updatePledgeUI();
+      updateSelectedPledgesList();
+    });
+  }
+  
+  // Commit to pledges
+  if (commitPledgesBtn) {
+    commitPledgesBtn.addEventListener('click', () => {
+      const user = getCurrentUser();
+      if (!user) {
+        alert('Please login to commit to pledges.');
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      if (selectedPledges.size === 0) {
+        alert('Please select at least one pledge to commit to.');
+        return;
+      }
+      
+      // Get user's existing pledges
+      const userPledges = getUserPledges();
+      const timestamp = Date.now();
+      let newCount = 0;
+      
+      // Add new pledges
+      Array.from(selectedPledges).forEach(pledgeId => {
+        const pledge = predefinedPledges.find(p => p.id === pledgeId);
+        if (pledge) {
+          // Check if user already has this pledge (and it's not completed)
+          const existingPledge = userPledges.find(p => 
+            p.pledgeId === pledgeId && 
+            p.userId === user.email && 
+            p.status !== 'archived'
+          );
+          if (!existingPledge) {
+            userPledges.push({
+              id: `${user.email}-${pledgeId}-${timestamp}`,
+              userId: user.email,
+              userName: user.name,
+              pledgeId: pledgeId,
+              title: pledge.title,
+              icon: pledge.icon,
+              description: pledge.description,
+              category: pledge.category,
+              status: 'active',
+              committedAt: timestamp,
+              completedAt: null
+            });
+            newCount++;
+          }
+        }
+      });
+      
+      saveUserPledges(userPledges);
+      
+      // Clear selection
+      const selectedCount = selectedPledges.size;
+      selectedPledges.clear();
+      updatePledgeUI();
+      updateSelectedPledgesList();
+      
+      // Show success message
+      if (newCount > 0) {
+        alert(`✅ Successfully committed to ${newCount} pledge(s)!`);
+      } else {
+        alert('ℹ️ You have already committed to these pledges.');
+      }
+      
+      // Refresh my pledges
+      renderMyPledges();
+    });
+  }
+  
+  // Get user pledges
+  function getUserPledges() {
+    try {
+      return JSON.parse(localStorage.getItem(USER_PLEDGES_STORAGE_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+  
+  // Save user pledges
+  function saveUserPledges(pledges) {
+    localStorage.setItem(USER_PLEDGES_STORAGE_KEY, JSON.stringify(pledges));
+  }
+  
+  // Render my pledges
+  function renderMyPledges() {
+    if (!myPledgesList || !myPledgesSection) return;
+    
+    const user = getCurrentUser();
+    if (!user) {
+      myPledgesSection.style.display = 'none';
+      return;
+    }
+    
+    const userPledges = getUserPledges().filter(p => 
+      p.userId === user.email && p.status !== 'archived'
+    );
+    
+    if (userPledges.length === 0) {
+      myPledgesSection.style.display = 'none';
+      return;
+    }
+    
+    myPledgesSection.style.display = 'block';
+    
+    // Sort: active first, then completed
+    userPledges.sort((a, b) => {
+      if (a.status === 'completed' && b.status !== 'completed') return 1;
+      if (a.status !== 'completed' && b.status === 'completed') return -1;
+      return b.committedAt - a.committedAt;
+    });
+    
+    myPledgesList.innerHTML = userPledges.map(pledge => {
+      const daysSince = Math.floor((Date.now() - pledge.committedAt) / (1000 * 60 * 60 * 24));
+      const statusClass = pledge.status === 'completed' ? 'completed' : 'active';
+      const statusText = pledge.status === 'completed' ? 'Completed' : `Active - Day ${daysSince + 1}`;
+      
+      return `
+        <div class="my-pledge-card ${statusClass}">
+          <div class="my-pledge-card-header">
+            <div class="my-pledge-card-title">
+              <span class="my-pledge-card-icon">${pledge.icon}</span>
+              ${escapeHtml(pledge.title)}
+            </div>
+            <span class="my-pledge-card-status ${statusClass}">${statusText}</span>
+          </div>
+          <p style="color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 12px;">
+            ${escapeHtml(pledge.description)}
+          </p>
+          <div class="my-pledge-card-meta">
+            <span>Committed: ${new Date(pledge.committedAt).toLocaleDateString()}</span>
+            <div class="my-pledge-card-actions">
+              ${pledge.status !== 'completed' ? `
+                <button class="my-pledge-card-btn complete" data-pledge-id="${pledge.id}">Mark Complete</button>
+                <button class="my-pledge-card-btn" data-pledge-id="${pledge.id}" data-action="archive">Archive</button>
+              ` : `
+                <span style="color: var(--muted); font-size: 12px;">
+                  Completed: ${new Date(pledge.completedAt).toLocaleDateString()}
+                </span>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    // Add action listeners
+    myPledgesList.querySelectorAll('.my-pledge-card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pledgeId = btn.getAttribute('data-pledge-id');
+        const action = btn.getAttribute('data-action');
+        
+        if (action === 'archive') {
+          archivePledge(pledgeId);
+        } else {
+          completePledge(pledgeId);
+        }
+      });
+    });
+  }
+  
+  // Complete pledge
+  function completePledge(pledgeId) {
+    if (confirm('Have you completed this pledge? Marking it as complete will move it to your completed pledges.')) {
+      const userPledges = getUserPledges();
+      const pledge = userPledges.find(p => p.id === pledgeId);
+      
+      if (pledge) {
+        pledge.status = 'completed';
+        pledge.completedAt = Date.now();
+        saveUserPledges(userPledges);
+        renderMyPledges();
+        alert('🎉 Congratulations! You completed your pledge!');
+      }
+    }
+  }
+  
+  // Archive pledge
+  function archivePledge(pledgeId) {
+    if (confirm('Are you sure you want to archive this pledge? You can always select it again from the list.')) {
+      const userPledges = getUserPledges();
+      const pledge = userPledges.find(p => p.id === pledgeId);
+      
+      if (pledge) {
+        pledge.status = 'archived';
+        saveUserPledges(userPledges);
+        renderMyPledges();
+      }
+    }
+  }
+  
+  // Escape HTML helper (reuse from above if available)
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  // Initial render
+  renderPledges();
+  renderMyPledges();
+  
+  // Re-render when login status changes or pledges are committed
+  setInterval(() => {
+    renderPledges();
+    renderMyPledges();
+  }, 2000);
+}
+
 

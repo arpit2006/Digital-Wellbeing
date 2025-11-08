@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Wellbeing Awareness Check-In</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(160deg, #f0f4ff, #fef7ff);
+        }
+
+        .card {
+            width: min(680px, 94vw);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(18px);
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(24, 40, 80, 0.16);
+            padding: 32px 38px;
+            color: #1d2a44;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: clamp(1.8rem, 3vw, 2.4rem);
+        }
+
+        p.lead {
+            margin-top: 0.4rem;
+            margin-bottom: 1.6rem;
+            color: #42506b;
+            line-height: 1.54;
+        }
+
+        form {
+            display: grid;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input[type="number"],
+        select,
+        button {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #b8c3d6;
+            font-size: 1rem;
+        }
+
+        input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        fieldset {
+            border: 1px solid #d9e2f1;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        fieldset legend {
+            font-weight: 600;
+            color: #2c3e60;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .result {
+            border-radius: 12px;
+            padding: 20px;
+            background: #eef4ff;
+            border: 1px solid #c8d7ff;
+            margin-top: 12px;
+        }
+
+        .result strong {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+
+        button {
+            background: #324e9a;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(50, 78, 154, 0.28);
+        }
+
+        .redirect-banner {
+            font-size: 0.95rem;
+            color: #42506b;
+            margin-top: 10px;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(21, 33, 54, 0.6);
+            display: grid;
+            place-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            width: min(480px, 94vw);
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+            padding: 28px 32px;
+            text-align: center;
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.6rem;
+        }
+
+        .modal p {
+            color: #42506b;
+            margin: 8px 0;
+        }
+
+        .modal button {
+            margin-top: 18px;
+            width: auto;
+            padding: 10px 18px;
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <h1>Digital Wellbeing Awareness Check-In</h1>
+        <p class="lead">
+            Answer the prompts tailored to your age group to see your digital wellbeing awareness score. We'll share tips and then send you to more resources at Free Your Mind.
+        </p>
+
+        <form id="wellbeing-form">
+            <div>
+                <label for="age">Your Age</label>
+                <input id="age" name="age" type="number" min="5" max="120" required placeholder="Enter your age" />
+            </div>
+
+            <fieldset id="question-set" class="hidden"></fieldset>
+
+            <button type="submit">Show My Awareness Score</button>
+        </form>
+
+        <section id="result" class="result hidden"></section>
+        <p id="redirect-banner" class="redirect-banner hidden"></p>
+    </main>
+
+    <div id="modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal">
+            <h2 id="modal-title">Your Awareness Score</h2>
+            <div id="modal-body"></div>
+            <button type="button" id="modal-close">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("wellbeing-form");
+        const ageInput = document.getElementById("age");
+        const questionSet = document.getElementById("question-set");
+        const result = document.getElementById("result");
+        const redirectBanner = document.getElementById("redirect-banner");
+        const modalBackdrop = document.getElementById("modal-backdrop");
+        const modalBody = document.getElementById("modal-body");
+        const modalClose = document.getElementById("modal-close");
+
+        const questionBank = {
+            child: [
+                {
+                    prompt: "How often do you take breaks from screens while studying or playing?",
+                    options: [
+                        { text: "Every 20-30 minutes", value: 3 },
+                        { text: "Once every hour", value: 2 },
+                        { text: "Hardly ever", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "Do you talk to a trusted adult when something online makes you uncomfortable?",
+                    options: [
+                        { text: "Yes, always", value: 3 },
+                        { text: "Sometimes", value: 2 },
+                        { text: "No, I keep it to myself", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "Do you balance online time with outdoor play or hobbies?",
+                    options: [
+                        { text: "Every day", value: 3 },
+                        { text: "A few times a week", value: 2 },
+                        { text: "Not really", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "When a game or app asks for personal details, what do you do?",
+                    options: [
+                        { text: "Ask an adult before sharing", value: 3 },
+                        { text: "Share only simple info", value: 2 },
+                        { text: "Type in whatever it asks for", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "How do you feel after spending a long time online?",
+                    options: [
+                        { text: "I notice my feelings and take breaks", value: 3 },
+                        { text: "Sometimes I feel off but keep going", value: 2 },
+                        { text: "I never think about it", value: 1 }
+                    ]
+                }
+            ],
+            teen: [
+                {
+                    prompt: "How mindful are you about the time you spend scrolling on social media?",
+                    options: [
+                        { text: "I set limits and stick to them", value: 3 },
+                        { text: "I try, but it's hard", value: 2 },
+                        { text: "I lose track of time often", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "How often do you detox from devices (e.g., no-phone evenings)?",
+                    options: [
+                        { text: "Weekly", value: 3 },
+                        { text: "Monthly", value: 2 },
+                        { text: "Almost never", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "When you feel overwhelmed online, what do you do?",
+                    options: [
+                        { text: "I reach out or step away mindfully", value: 3 },
+                        { text: "I distract myself with more content", value: 2 },
+                        { text: "I just push through the discomfort", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "How do you manage notifications during study or sleep time?",
+                    options: [
+                        { text: "I silence or schedule them", value: 3 },
+                        { text: "I mute only the distracting ones", value: 2 },
+                        { text: "I leave all notifications on", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "If you see harmful content or cyberbullying, what action do you take?",
+                    options: [
+                        { text: "Report it and support the person", value: 3 },
+                        { text: "Ignore it unless it's serious", value: 2 },
+                        { text: "Scroll past—it’s none of my business", value: 1 }
+                    ]
+                }
+            ],
+            adult: [
+                {
+                    prompt: "How often do you set boundaries for after-hours work communication?",
+                    options: [
+                        { text: "Consistently", value: 3 },
+                        { text: "Only during stressful times", value: 2 },
+                        { text: "Rarely", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "Do you have tech-free rituals (meals, bedtime, mornings)?",
+                    options: [
+                        { text: "Daily", value: 3 },
+                        { text: "Occasionally", value: 2 },
+                        { text: "No, devices are always around", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "How intentional are you about the information you consume online?",
+                    options: [
+                        { text: "I curate and fact-check regularly", value: 3 },
+                        { text: "I skim and sometimes verify", value: 2 },
+                        { text: "I rarely check sources", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "How do you model healthy tech habits for people around you?",
+                    options: [
+                        { text: "I set clear examples and talk about them", value: 3 },
+                        { text: "I try, but it's inconsistent", value: 2 },
+                        { text: "I haven't thought about it", value: 1 }
+                    ]
+                },
+                {
+                    prompt: "How regularly do you review privacy and security settings on your devices?",
+                    options: [
+                        { text: "Every few months", value: 3 },
+                        { text: "Once a year", value: 2 },
+                        { text: "Only when something goes wrong", value: 1 }
+                    ]
+                }
+            ]
+        };
+
+        function getAgeBand(age) {
+            if (age <= 12) return "child";
+            if (age <= 19) return "teen";
+            return "adult";
+        }
+
+        function renderQuestions(ageBand) {
+            const questions = questionBank[ageBand];
+            if (!questions) {
+                questionSet.classList.add("hidden");
+                questionSet.innerHTML = "";
+                return;
+            }
+
+            questionSet.innerHTML = questions
+                .map((question, index) => {
+                    const name = `q${index}`;
+                    return `
+                        <div class="question">
+                            <legend>${question.prompt}</legend>
+                            <div class="options">
+                                ${question.options
+                                    .map(
+                                        (option, optionIndex) => `
+                                            <label>
+                                                <input type="radio" name="${name}" value="${option.value}" ${
+                                                    optionIndex === 0 ? "required" : ""
+                                                } />
+                                                ${option.text}
+                                            </label>
+                                        `
+                                    )
+                                    .join("")}
+                            </div>
+                        </div>
+                    `;
+                })
+                .join("");
+
+            questionSet.classList.remove("hidden");
+        }
+
+        ageInput.addEventListener("input", () => {
+            const age = Number(ageInput.value);
+            if (!age || age < 5) {
+                questionSet.classList.add("hidden");
+                questionSet.innerHTML = "";
+                return;
+            }
+            const band = getAgeBand(age);
+            questionSet.innerHTML = `
+                <legend>
+                    For ${band === "child" ? "Kids" : band === "teen" ? "Teens" : "Adults"}
+                </legend>
+                ${questionBank[band]
+                    .map((question, index) => {
+                        const name = `q${index}`;
+                        return `
+                            <div class="question">
+                                <p>${question.prompt}</p>
+                                <div class="options">
+                                    ${question.options
+                                        .map(
+                                            (option, optionIndex) => `
+                                                <label>
+                                                    <input type="radio" name="${name}" value="${option.value}" ${
+                                                        optionIndex === 0 ? "required" : ""
+                                                    } />
+                                                    ${option.text}
+                                                </label>
+                                            `
+                                        )
+                                        .join("")}
+                                </div>
+                            </div>
+                        `;
+                    })
+                    .join("")}
+            `;
+
+            questionSet.classList.remove("hidden");
+            result.classList.add("hidden");
+            redirectBanner.classList.add("hidden");
+        });
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const age = Number(ageInput.value);
+            const band = getAgeBand(age);
+            const questions = questionBank[band];
+            if (!questions) return;
+
+            const data = new FormData(form);
+            let total = 0;
+            let max = questions.length * 3;
+
+            for (let i = 0; i < questions.length; i++) {
+                const value = Number(data.get(`q${i}`));
+                if (!value) {
+                    alert("Please answer every question.");
+                    return;
+                }
+                total += value;
+            }
+
+            const percentage = Math.round((total / max) * 100);
+            let message = "Great job recognizing when to unplug and reset.";
+            if (percentage < 70) {
+                message = "Consider setting clearer boundaries and exploring supportive habits.";
+            } else if (percentage < 90) {
+                message = "You're building awareness—keep reinforcing healthy routines.";
+            }
+
+            result.innerHTML = `
+                <strong>Your awareness score: ${total} / ${max} (${percentage}%)</strong>
+                <p>${message}</p>
+                <p>We will redirect you shortly for more tips and wellbeing support.</p>
+            `;
+            result.classList.remove("hidden");
+
+            modalBody.innerHTML = `
+                <p><strong>${total} / ${max} (${percentage}%)</strong></p>
+                <p>${message}</p>
+            `;
+            modalBackdrop.classList.remove("hidden");
+
+            if (percentage < 50) {
+                redirectBanner.textContent = "Redirecting to freeyourmind.vercel.app in 6 seconds...";
+                redirectBanner.classList.remove("hidden");
+
+                setTimeout(() => {
+                    window.location.href = "https://freeyourmind.vercel.app";
+                }, 6000);
+            } else {
+                redirectBanner.classList.add("hidden");
+            }
+        });
+
+        modalClose.addEventListener("click", () => {
+            modalBackdrop.classList.add("hidden");
+        });
+
+        modalBackdrop.addEventListener("click", (event) => {
+            if (event.target === modalBackdrop) {
+                modalBackdrop.classList.add("hidden");
+            }
+        });
+    </script>
+</body>
+</html>
+
