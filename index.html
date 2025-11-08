@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Well-Being & Smartphone Addiction</title>
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="description"
+    content="Awareness on smartphone addiction and digital well-being. Register/Login to access games and quizzes." />
+  <style>
+    .logo {height: 60px;width: 60px;border-radius: 50px;}
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"><img src="/Images/Logo.png" alt="logo" class="logo"></span>
+      <h1>Digital Well-Being</h1>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" type="button">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="index.html" class="active">Home</a>
+      <a href="/Games/index.html">Games</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="resources.html">Resources</a>
+      <a href="dashboard.html">Dashboard</a>
+      <span id="nav-username" class="muted hidden"></span>
+      <a href="login.html" id="nav-auth">Login / Register</a>
+      <button id="nav-logout" class="btn-link hidden" type="button">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h2>Find Balance In A Hyperconnected World</h2>
+      <p>Learn about smartphone addiction, build healthy habits, and test yourself with mindful games.</p>
+      <a class="cta" href="login.html">Get Started</a>
+    </section>
+
+    <section class="slideshow" aria-label="Digital addiction awareness slides">
+      <div class="slides" id="slides" role="region" aria-live="polite">
+        <article class="slide is-active" data-index="0">
+          <div class="slide-bg bg-1"></div>
+          <div class="slide-content">
+            <h3>What is Smartphone Addiction?</h3>
+            <p>Compulsive phone use that disrupts sleep, work, or relationships.</p>
+          </div>
+        </article>
+        <article class="slide" data-index="1">
+          <div class="slide-bg bg-2"></div>
+          <div class="slide-content">
+            <h3>Common Signs</h3>
+            <p>Phantom vibrations, endless scrolling, and anxiety when away from your phone.</p>
+          </div>
+        </article>
+        <article class="slide" data-index="2">
+          <div class="slide-bg bg-3"></div>
+          <div class="slide-content">
+            <h3>Healthy Habits</h3>
+            <p>Set app limits, create tech-free zones, and prioritize in-person time.</p>
+          </div>
+        </article>
+        <article class="slide" data-index="3">
+          <div class="slide-bg bg-4"></div>
+          <div class="slide-content">
+            <h3>Mindful Check-ins</h3>
+            <p>Ask: "Why am I opening my phone now?" Choose intention over impulse.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="slide-controls" aria-label="Slideshow controls">
+        <button id="prevSlide" aria-label="Previous slide">◀</button>
+        <div class="dots" id="dots" role="tablist" aria-label="Slide indicators"></div>
+        <button id="nextSlide" aria-label="Next slide">▶</button>
+      </div>
+    </section>
+
+    <section class="tips" aria-label="Daily tips">
+      <h2 style="margin:10px 20px">Today's Tip</h2>
+      <div class="tips-card" id="tipCard"></div>
+    </section>
+
+    <section class="cta-strip">
+      <p>Access mindful games and a quick quiz — <strong>login required</strong>.</p>
+      <a class="cta secondary" href="games.html">Go to Games & Quiz</a>
+    </section>
+
+    <section class="reviews" aria-label="User reviews">
+      <div class="reviews-header">
+        <h2>What visitors say</h2>
+        <p class="muted">Real reflections from people building healthier phone habits.</p>
+      </div>
+      <div class="reviews-grid" id="reviewsList"></div>
+
+      <div class="review-form" id="reviewFormWrap">
+        <h3>Share your experience</h3>
+        <form id="reviewForm" autocomplete="off">
+          <div class="row">
+            <label>
+              <span>Rating</span>
+              <select id="reviewRating" required>
+                <option value="">Select…</option>
+                <option value="5">★★★★★</option>
+                <option value="4">★★★★☆</option>
+                <option value="3">★★★☆☆</option>
+                <option value="2">★★☆☆☆</option>
+                <option value="1">★☆☆☆☆</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            <span>Comment</span>
+            <textarea id="reviewText" rows="3" maxlength="500" placeholder="What helped you the most?"
+              required></textarea>
+          </label>
+          <button type="submit" class="cta">Post Review</button>
+          <p id="reviewMsg" class="muted" role="status"></p>
+        </form>
+        <p id="reviewLoginHint" class="muted hidden">Login to share your review.</p>
+      </div>
+    </section>
+    <section class="pledge" aria-label="7-day mindful phone challenge">
+      <div class="pledge-inner">
+        <h2>7‑Day Mindful Phone Challenge</h2>
+        <p class="muted">Join a week of small changes for a calmer mind.</p>
+        <a class="cta" href="quiz.html">Take the first step</a>
+      </div>
+    </section>
+    <section class="faq" aria-label="Frequently Asked Questions">
+      <div class="faq-header">
+        <h2>Frequently Asked Questions</h2>
+        <p class="muted">Quick answers about digital well-being, accounts, and using this site.</p>
+      </div>
+      <div class="faq-list" id="faqList">
+        <article class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">What is smartphone addiction?</button>
+          <div class="faq-a" hidden>
+            <p>It’s compulsive device use that harms sleep, focus, or relationships. The key is building intentional
+              habits and boundaries.</p>
+          </div>
+        </article>
+        <article class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">Do I need an account to play?</button>
+          <div class="faq-a" hidden>
+            <p>Yes. Login lets us keep your local progress (on this device) and unlock games and the quiz.</p>
+          </div>
+        </article>
+        <article class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">Is my data stored online?</button>
+          <div class="faq-a" hidden>
+            <p>No. This demo saves data in your browser’s localStorage only. Clearing site data resets progress.</p>
+          </div>
+        </article>
+        <article class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">How do the quizzes work for different ages?</button>
+          <div class="faq-a" hidden>
+            <p>Pick your age group to load tailored questions. You’ll answer one at a time and see a result at the end.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <b>Made With ❤️ by Arpit</b>
+    <br>
+    <small>© <span id="year"></span> Digital Well-Being. All Rights Reserved.</small>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    // Initialize slideshow and auth-aware nav
+    window.addEventListener('DOMContentLoaded', function () {
+      initAuthNav();
+      initSlideshow();
+      const y = document.getElementById('year');
+      if (y) y.textContent = new Date().getFullYear();
+      initReviewsUI();
+      initFAQ();
+      initDailyTip();
+    });
+  </script>
+</body>
+
+</html>

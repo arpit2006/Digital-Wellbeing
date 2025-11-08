@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resources - Digital Well-Being</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">📵</span>
+      <h1>Resources</h1>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" type="button">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="index.html">Home</a>
+      <a href="games.html">Games</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="resources.html" class="active">Resources</a>
+      <a href="dashboard.html">Dashboard</a>
+      <span id="nav-username" class="muted hidden"></span>
+      <a href="login.html" id="nav-auth">Login / Register</a>
+      <button id="nav-logout" class="btn-link hidden" type="button">Logout</button>
+    </nav>
+  </header>
+
+  <main class="games-container">
+    <section class="card">
+      <h2>Guides & Help</h2>
+      <ul class="stats">
+        <li><span>WHO: Digital well-being</span><a href="https://www.who.int/" target="_blank" rel="noopener">Open</a></li>
+        <li><span>Screen Time Guides (Apple)</span><a href="https://support.apple.com/en-us/HT208982" target="_blank" rel="noopener">Open</a></li>
+        <li><span>Digital Wellbeing (Android)</span><a href="https://wellbeing.google" target="_blank" rel="noopener">Open</a></li>
+      </ul>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Articles & Tools</h2>
+      <ul class="stats">
+        <li><span>Healthy phone habits checklist</span><a href="https://www.nytimes.com/guides/smarterliving/how-to-be-better-with-your-phone" target="_blank" rel="noopener">Open</a></li>
+        <li><span>Focus techniques (Pomodoro)</span><a href="https://francescocirillo.com/pages/pomodoro-technique" target="_blank" rel="noopener">Open</a></li>
+        <li><span>Sleep and screens</span><a href="https://www.sleepfoundation.org/bedtime-procrastination/tech-and-sleep" target="_blank" rel="noopener">Open</a></li>
+      </ul>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Support</h2>
+      <ul class="stats">
+        <li><span>Local mental health support</span><a href="https://www.findtreatment.gov/" target="_blank" rel="noopener">US</a></li>
+        <li><span>International helplines (IFRC)</span><a href="https://www.ifrc.org/find-help" target="_blank" rel="noopener">Open</a></li>
+      </ul>
+      <p class="muted" style="margin-top:8px">If you or someone you know needs help, reach out to local services.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>© <span id="year"></span> Digital Well-Being.</small>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      const year = document.getElementById('year');
+      if (year) year.textContent = new Date().getFullYear();
+      initAuthNav();
+    });
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Digital Well-Being</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">📵</span>
+      <h1>Dashboard</h1>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" type="button">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="index.html">Home</a>
+      <a href="games.html">Games</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="resources.html">Resources</a>
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <span id="nav-username" class="muted hidden"></span>
+      <a href="login.html" id="nav-auth">Login / Register</a>
+      <button id="nav-logout" class="btn-link hidden" type="button">Logout</button>
+    </nav>
+  </header>
+
+  <main class="games-container">
+    <section class="gate" id="gate">
+      <h2>Login Required</h2>
+      <p>You must be logged in to view your dashboard.</p>
+      <a class="cta" href="login.html">Go to Login</a>
+    </section>
+
+    <section class="content hidden" id="content">
+      <div class="welcome">
+        <p>Welcome, <strong id="userName"></strong>!</p>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <h3>Daily Check-in</h3>
+          <div class="row">
+            <button id="checkInBtn" class="cta small" type="button">Check in today</button>
+            <span class="stat">Streak: <strong id="streakCount">0</strong> days</span>
+          </div>
+          <p class="muted" id="goalHint">Weekly goal: <span id="weeklyGoal">3</span> days • Badges: <span id="badgeList">—</span></p>
+        </article>
+
+        <article class="card">
+          <h3>Focus Timer</h3>
+          <div class="row">
+            <label>Minutes <input id="focusMinutes" type="number" value="25" min="1" max="120" style="width:70px" /></label>
+            <button id="focusStart" class="cta small" type="button">Start</button>
+            <button id="focusStop" class="cta small" type="button">Stop</button>
+            <span id="focusDisplay" class="stat">00:00</span>
+          </div>
+          <p class="muted">Recent sessions:</p>
+          <ul class="stats" id="focusLogs"></ul>
+        </article>
+
+        <article class="card">
+          <h3>Habits This Week</h3>
+          <div class="habits" id="habits"></div>
+          <div class="row">
+            <button id="habitsResetWeek" class="cta small" type="button">Reset Week</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Overview</h3>
+          <ul class="stats">
+            <li><span>Games played</span><strong id="ovGames">0</strong></li>
+            <li><span>Best reaction</span><strong id="ovBest">—</strong></li>
+            <li><span>Avg reaction (last 10)</span><strong id="ovAvg">—</strong></li>
+            <li><span>Quizzes taken</span><strong id="ovQuizzes">0</strong></li>
+            <li><span>Last quiz score</span><strong id="ovLastScore">—</strong></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Reaction Times (last 10)</h3>
+          <div id="reactionBars" class="bars"></div>
+          <p class="muted" id="reactionEmpty">No data yet. Play the Reaction game.</p>
+        </article>
+
+        <article class="card">
+          <h3>Quiz Scores (last 10)</h3>
+          <div id="quizBars" class="bars"></div>
+          <p class="muted" id="quizEmpty">No data yet. Take the Quiz.</p>
+        </article>
+
+        <article class="card">
+          <h3>Recent Quiz Results</h3>
+          <ul class="stats" id="quizHistory"></ul>
+          <p class="muted" id="quizHistoryEmpty">No quiz attempts yet.</p>
+        </article>
+
+        <article class="card">
+          <h3>External Games Usage</h3>
+          <ul class="stats" id="extGamesList"></ul>
+          <p class="muted" id="extGamesEmpty">No external game plays yet.</p>
+        </article>
+
+        <article class="card">
+          <h3>Data</h3>
+          <div class="row">
+            <button id="exportData" class="cta small" type="button">Export JSON</button>
+            <button id="resetData" class="cta small" type="button">Reset (this device)</button>
+          </div>
+          <p class="muted">Export downloads your data. Reset clears localStorage (progress, reviews, etc.).</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>© <span id="year"></span> Digital Well-Being.</small>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      const year = document.getElementById('year');
+      if (year) year.textContent = new Date().getFullYear();
+      gateContent();
+      initAuthNav();
+      renderDashboard();
+      initDashboardExtras();
+    });
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Addiction: The Invisible Prison</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Digital Addiction: The Invisible Prison</h1>
+            <p class="subtitle">Break free through skill and focus</p>
+            <div class="user-info" id="user-info">
+                <button id="login-header-btn" class="login-header-btn">Login / Register</button>
+                <span id="username-display" class="hidden"></span>
+                <button id="review-btn" class="review-header-btn">Leave Review</button>
+                <button id="logout-btn" class="logout-btn hidden">Logout</button>
+                <button id="profile-btn" class="profile-btn hidden">Profile</button>
+            </div>
+        </header>
+
+        <!-- Authentication Forms -->
+        <div id="auth-section" class="auth-section hidden">
+            <div class="auth-container">
+                <button class="close-auth" id="close-auth-btn">&times;</button>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Login</button>
+                    <button class="auth-tab" data-tab="register">Register</button>
+                </div>
+                
+                <form id="login-form" class="auth-form active" onsubmit="event.preventDefault(); handleLogin();">
+                    <h2>Login to Play</h2>
+                    <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
+                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                    <button type="submit" id="login-btn" class="auth-button">Login</button>
+                    <p id="login-error" class="error-message"></p>
+                </form>
+                
+                <form id="register-form" class="auth-form" onsubmit="event.preventDefault(); handleRegister();">
+                    <h2>Create Account</h2>
+                    <input type="text" id="register-username" placeholder="Username" required autocomplete="username">
+                    <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
+                    <input type="password" id="register-password" placeholder="Password" required autocomplete="new-password">
+                    <input type="password" id="register-confirm" placeholder="Confirm Password" required autocomplete="new-password">
+                    <button type="submit" id="register-btn" class="auth-button">Register</button>
+                    <p id="register-error" class="error-message"></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- User Profile Modal -->
+        <div id="profile-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>User Profile</h2>
+                <div id="profile-stats">
+                    <div class="stat-card">
+                        <h3>Total Score</h3>
+                        <p id="total-score">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Highest Level</h3>
+                        <p id="highest-level">1</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Games Played</h3>
+                        <p id="games-played">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Best Scores</h3>
+                        <div id="best-scores"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Modal -->
+        <div id="review-modal" class="modal hidden">
+            <div class="modal-content review-modal-content">
+                <span class="close-modal" id="close-review-modal">&times;</span>
+                <h2>Share Your Review</h2>
+                <p class="review-subtitle">Help us improve! Your feedback will be sent to our team.</p>
+                <form id="review-form" onsubmit="event.preventDefault(); handleReviewSubmit();">
+                    <div class="review-rating">
+                        <label>Rating:</label>
+                        <div class="stars">
+                            <span class="star" data-rating="1">⭐</span>
+                            <span class="star" data-rating="2">⭐</span>
+                            <span class="star" data-rating="3">⭐</span>
+                            <span class="star" data-rating="4">⭐</span>
+                            <span class="star" data-rating="5">⭐</span>
+                        </div>
+                        <span id="rating-value">0</span>
+                    </div>
+                    <input type="text" id="reviewer-name" placeholder="Your Name" required>
+                    <input type="email" id="reviewer-email" placeholder="Your Email" required>
+                    <input type="email" id="recipient-email" placeholder="Your Email for Receiving Reviews (optional)" value="">
+                    <textarea id="review-message" placeholder="Write your review here..." rows="6" required></textarea>
+                    <button type="submit" id="submit-review-btn" class="auth-button">Send Review</button>
+                    <p id="review-status" class="review-status"></p>
+                </form>
+                <div class="emailjs-setup-note">
+                    <p><strong>Note:</strong> To enable email sending, you need to configure EmailJS.</p>
+                    <p>Add your EmailJS service ID, template ID, and public key in script.js</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-menu" class="game-menu hidden">
+            <div class="menu-grid">
+                <div class="game-card" data-game="memory">
+                    <div class="card-icon">🧠</div>
+                    <h3>Memory Match</h3>
+                    <p>Match pairs to break digital chains</p>
+                </div>
+                <div class="game-card" data-game="reaction">
+                    <div class="card-icon">⚡</div>
+                    <h3>Reaction Test</h3>
+                    <p>Test your reflexes in the digital realm</p>
+                </div>
+                <div class="game-card" data-game="pattern">
+                    <div class="card-icon">🔢</div>
+                    <h3>Pattern Sequence</h3>
+                    <p>Follow the sequence to escape</p>
+                </div>
+                <div class="game-card" data-game="typing">
+                    <div class="card-icon">⌨️</div>
+                    <h3>Typing Challenge</h3>
+                    <p>Type your way to freedom</p>
+                </div>
+                <div class="game-card" data-game="puzzle">
+                    <div class="card-icon">🧩</div>
+                    <h3>Puzzle Escape</h3>
+                    <p>Solve puzzles to unlock doors</p>
+                </div>
+                <div class="game-card" data-game="concentration">
+                    <div class="card-icon">🎯</div>
+                    <h3>Concentration Focus</h3>
+                    <p>Maintain focus against distractions</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-area" class="game-area hidden">
+            <div class="game-header">
+                <button id="back-btn" class="back-btn">← Back to Menu</button>
+                <div class="score-board">
+                    <span>User: <span id="current-username"></span></span>
+                    <span>Score: <span id="score">0</span></span>
+                    <span>Level: <span id="level">1</span></span>
+                </div>
+            </div>
+            <div id="game-content"></div>
+        </div>
+
+        <footer>
+            <p>Break free from the invisible prison of digital addiction</p>
+        </footer>
+    </div>
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

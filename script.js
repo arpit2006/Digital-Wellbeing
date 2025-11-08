@@ -1,0 +1,886 @@
+// Simple localStorage auth (demo only)
+const STORAGE_KEYS = {
+  users: 'dw_users',
+  session: 'dw_session_user'
+};
+
+function readUsers(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.users) || '[]'); } catch { return []; }
+}
+function writeUsers(users){
+  localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(users));
+}
+function setSession(user){
+  if (user){ localStorage.setItem(STORAGE_KEYS.session, JSON.stringify({ email:user.email, name:user.name })); }
+}
+function getSession(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.session) || 'null'); } catch { return null; }
+}
+function clearSession(){ localStorage.removeItem(STORAGE_KEYS.session); }
+
+function getCurrentUser(){
+  const session = getSession(); if (!session) return null;
+  const users = readUsers();
+  return users.find(u => u.email === session.email) || null;
+}
+function updateCurrentUser(mutator){
+  const session = getSession(); if (!session) return;
+  const users = readUsers();
+  const idx = users.findIndex(u => u.email === session.email);
+  if (idx === -1) return;
+  const user = users[idx];
+  const updated = mutator({ ...user });
+  users[idx] = updated;
+  writeUsers(users);
+}
+
+// Basic hash substitute (NOT secure; demo only)
+function simpleHash(s){
+  let h = 0; for (let i = 0; i < s.length; i++){ h = (h<<5) - h + s.charCodeAt(i); h |= 0; }
+  return String(h);
+}
+
+// Nav state
+function initAuthNav(){
+  const navAuth = document.getElementById('nav-auth');
+  const navLogout = document.getElementById('nav-logout');
+  const navUsername = document.getElementById('nav-username');
+  const session = getSession();
+  if (session){
+    if (navAuth) navAuth.classList.add('hidden');
+    if (navLogout){
+      navLogout.classList.remove('hidden');
+      navLogout.addEventListener('click', () => { clearSession(); location.href = 'index.html'; });
+    }
+    if (navUsername){ navUsername.textContent = 'Hello, ' + (session.name || session.email); navUsername.classList.remove('hidden'); }
+  } else {
+    if (navAuth) navAuth.classList.remove('hidden');
+    if (navLogout) navLogout.classList.add('hidden');
+    if (navUsername) navUsername.classList.add('hidden');
+  }
+}
+
+// Tabs on login/register
+function initAuthTabs(){
+  const tabs = document.querySelectorAll('.tab');
+  const forms = document.querySelectorAll('.form');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('is-active'));
+      forms.forEach(f => f.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      const target = tab.getAttribute('data-tab');
+      const form = document.getElementById(target + 'Form');
+      if (form) form.classList.add('is-active');
+    });
+  });
+}
+
+// Auth forms
+function bindAuthForms(){
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const loginError = document.getElementById('loginError');
+  const registerError = document.getElementById('registerError');
+
+  if (loginForm){
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const password = document.getElementById('loginPassword').value;
+      const users = readUsers();
+      const user = users.find(u => u.email === email && u.passwordHash === simpleHash(password));
+      if (!user){
+        if (loginError) loginError.textContent = 'Invalid email or password.';
+        return;
+      }
+      setSession(user);
+      location.href = 'games.html';
+    });
+  }
+
+  if (registerForm){
+    registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value.trim();
+      const email = document.getElementById('registerEmail').value.trim().toLowerCase();
+      const password = document.getElementById('registerPassword').value;
+      const users = readUsers();
+      if (users.some(u => u.email === email)){
+        if (registerError) registerError.textContent = 'An account with this email already exists.';
+        return;
+      }
+      const newUser = { name, email, passwordHash: simpleHash(password), createdAt: Date.now() };
+      users.push(newUser);
+      writeUsers(users);
+      setSession(newUser);
+      location.href = 'games.html';
+    });
+  }
+}
+
+// Gate content on games page
+function gateContent(){
+  const session = getSession();
+  const gate = document.getElementById('gate');
+  const content = document.getElementById('content');
+  const userName = document.getElementById('userName');
+  if (session){
+    if (gate) gate.classList.add('hidden');
+    if (content) content.classList.remove('hidden');
+    if (userName) userName.textContent = session.name || session.email;
+    renderProfile();
+  } else {
+    if (gate) gate.classList.remove('hidden');
+    if (content) content.classList.add('hidden');
+  }
+}
+
+// Profile progress UI
+function ensureProgressShape(u){
+  if (!u.progress) u.progress = {};
+  const p = u.progress;
+  if (typeof p.gamesPlayed !== 'number') p.gamesPlayed = 0;
+  if (typeof p.bestReactionMs !== 'number') p.bestReactionMs = Infinity;
+  if (typeof p.quizzesTaken !== 'number') p.quizzesTaken = 0;
+  if (typeof p.lastQuizScore !== 'number') p.lastQuizScore = 0;
+  if (!Array.isArray(p.reactionHistoryMs)) p.reactionHistoryMs = [];
+  if (!Array.isArray(p.quizScores)) p.quizScores = [];
+  if (!Array.isArray(p.quizScoresPct)) p.quizScoresPct = [];
+  if (!p.gamesById) p.gamesById = {};
+  if (!Array.isArray(p.quizHistory)) p.quizHistory = [];
+  return u;
+}
+function renderProfile(){
+  const user = getCurrentUser();
+  if (!user) return;
+  ensureProgressShape(user);
+  const gamesPlayed = document.getElementById('statGamesPlayed');
+  const bestReaction = document.getElementById('statBestReaction');
+  const quizzes = document.getElementById('statQuizzes');
+  const lastScore = document.getElementById('statLastScore');
+  if (gamesPlayed) gamesPlayed.textContent = String(user.progress.gamesPlayed);
+  if (bestReaction) bestReaction.textContent = (user.progress.bestReactionMs === Infinity) ? '—' : (user.progress.bestReactionMs + ' ms');
+  if (quizzes) quizzes.textContent = String(user.progress.quizzesTaken);
+  if (lastScore) lastScore.textContent = user.progress.lastQuizScore ? String(user.progress.lastQuizScore) : '—';
+
+  // Optional per-game list if container exists
+  const perGameList = document.getElementById('statPerGame');
+  if (perGameList){
+    perGameList.innerHTML = '';
+    const entries = Object.entries(user.progress.gamesById || {});
+    if (!entries.length){
+      const li = document.createElement('li'); li.className='muted'; li.textContent='No external game plays yet.'; perGameList.appendChild(li);
+    } else {
+      entries.forEach(([id,info])=>{
+        const li = document.createElement('li');
+        const name = info.name || id;
+        const count = info.count || 0;
+        li.innerHTML = '<span>'+name+'</span><strong>'+count+'</strong>';
+        perGameList.appendChild(li);
+      });
+    }
+  }
+}
+
+// Slideshow
+let slideTimer = null;
+function initSlideshow(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dots = document.getElementById('dots');
+  const prev = document.getElementById('prevSlide');
+  const next = document.getElementById('nextSlide');
+  if (!slides.length || !dots) return;
+
+  let index = 0;
+  function render(){
+    slides.forEach((s,i)=> s.classList.toggle('is-active', i===index));
+    Array.from(dots.children).forEach((d,i)=> d.setAttribute('aria-selected', i===index ? 'true':'false'));
+  }
+  function go(to){ index = (to + slides.length) % slides.length; render(); }
+  function startAuto(){ stopAuto(); slideTimer = setInterval(()=> go(index+1), 4500); }
+  function stopAuto(){ if (slideTimer){ clearInterval(slideTimer); slideTimer = null; } }
+
+  // Dots
+  slides.forEach((_,i)=>{
+    const b = document.createElement('button');
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-label','Go to slide ' + (i+1));
+    b.addEventListener('click', ()=> { go(i); startAuto(); });
+    dots.appendChild(b);
+  });
+
+  // Controls
+  if (prev) prev.addEventListener('click', ()=> { go(index-1); startAuto(); });
+  if (next) next.addEventListener('click', ()=> { go(index+1); startAuto(); });
+
+  render();
+  startAuto();
+}
+
+// Reaction Timer
+function bindReaction(){
+  const box = document.getElementById('reactionBox');
+  const start = document.getElementById('reactionStart');
+  const status = document.getElementById('reactionStatus');
+  const result = document.getElementById('reactionResult');
+  if (!box || !start) return;
+  let readyAt = 0; let timeoutId = null; let started = false; let clicked = false;
+
+  function reset(){
+    started = false; clicked = false; readyAt = 0; result.textContent = '';
+    box.classList.remove('ready','wait'); box.textContent = 'Wait for green…';
+    status.textContent = 'Press Start to begin.'; if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+  }
+  reset();
+
+  function begin(){
+    reset();
+    started = true; box.classList.add('wait'); status.textContent = 'Wait…';
+    const delay = 800 + Math.random()*2200;
+    timeoutId = setTimeout(()=>{ box.classList.remove('wait'); box.classList.add('ready'); box.textContent = 'CLICK!'; status.textContent = 'Now!'; readyAt = performance.now(); }, delay);
+  }
+
+  start.addEventListener('click', begin);
+  box.addEventListener('click', handleClick);
+  box.addEventListener('keydown', (e)=>{ if (e.key==='Enter' || e.key===' ') { e.preventDefault(); handleClick(); }});
+
+  function handleClick(){
+    if (!started) return; if (clicked) return; clicked = true;
+    if (!readyAt){ result.textContent = 'Too soon!'; status.textContent = 'Try again with patience.'; reset(); return; }
+    const rt = Math.round(performance.now() - readyAt);
+    result.textContent = rt + ' ms'; status.textContent = 'Great job!';
+    // Update stats
+    updateCurrentUser((u)=>{
+      u = ensureProgressShape(u);
+      u.progress.gamesPlayed += 1;
+      if (rt < u.progress.bestReactionMs) u.progress.bestReactionMs = rt;
+      u.progress.reactionHistoryMs.push(rt);
+      if (u.progress.reactionHistoryMs.length > 10) u.progress.reactionHistoryMs = u.progress.reactionHistoryMs.slice(-10);
+      return u;
+    });
+    renderProfile();
+  }
+}
+
+// Typing Challenge
+function bindTyping(){
+  const start = document.getElementById('typingStart');
+  const input = document.getElementById('typingInput');
+  const wordLabel = document.getElementById('typingWord');
+  const result = document.getElementById('typingResult');
+  if (!start || !input || !wordLabel) return;
+  const words = ['presence','balance','focus','mindful','disconnect','attention','breathe'];
+  let current = '';
+  let rounds = 0; let startTime = 0; let totalMs = 0;
+  function nextRound(){
+    current = words[Math.floor(Math.random()*words.length)];
+    wordLabel.textContent = current;
+    input.value = '';
+    input.focus();
+    startTime = performance.now();
+  }
+  function done(){
+    const avg = Math.round(totalMs / 3);
+    result.textContent = 'Average: ' + avg + ' ms';
+    updateCurrentUser((u)=>{ u = ensureProgressShape(u); u.progress.gamesPlayed += 1; return u; });
+    renderProfile();
+  }
+  start.addEventListener('click', ()=>{ rounds = 0; totalMs = 0; result.textContent = ''; nextRound(); });
+  input.addEventListener('input', ()=>{
+    if (!current) return;
+    if (input.value.trim().toLowerCase() === current){
+      const ms = Math.round(performance.now() - startTime);
+      totalMs += ms; rounds += 1;
+      if (rounds >= 3){ current = ''; done(); }
+      else { nextRound(); }
+    }
+  });
+}
+
+// Memory Match (6 cards -> 3 pairs)
+function bindMemory(){
+  const grid = document.getElementById('memoryGrid');
+  const btn = document.getElementById('memoryStart');
+  const status = document.getElementById('memoryStatus');
+  if (!grid || !btn) return;
+  let first = null, second = null, lock = false, matches = 0, moves = 0;
+  let values = [];
+  function shuffle(arr){ for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+  function setup(){
+    grid.innerHTML=''; first=second=null; lock=false; matches=0; moves=0; status.textContent='';
+    values = shuffle([1,1,2,2,3,3]);
+    values.forEach((v,idx)=>{
+      const d = document.createElement('button');
+      d.type='button';
+      d.className='cardm';
+      d.setAttribute('data-v', String(v));
+      d.addEventListener('click', ()=> flip(d));
+      d.textContent='?';
+      grid.appendChild(d);
+    });
+  }
+  function flip(card){
+    if (lock || card.classList.contains('matched') || card===first) return;
+    card.classList.add('revealed');
+    card.textContent = card.getAttribute('data-v');
+    if (!first){ first = card; return; }
+    second = card; lock = true; moves += 1;
+    const v1 = first.getAttribute('data-v');
+    const v2 = second.getAttribute('data-v');
+    if (v1 === v2){
+      first.classList.add('matched');
+      second.classList.add('matched');
+      first = second = null; lock = false; matches += 1;
+      if (matches === 3){
+        status.textContent = 'Solved in ' + moves + ' moves';
+        updateCurrentUser((u)=>{ u = ensureProgressShape(u); u.progress.gamesPlayed += 1; return u; });
+        renderProfile();
+      }
+    } else {
+      setTimeout(()=>{
+        first.classList.remove('revealed'); first.textContent='?';
+        second.classList.remove('revealed'); second.textContent='?';
+        first = second = null; lock = false;
+      }, 700);
+    }
+  }
+  btn.addEventListener('click', setup);
+  // auto setup on load for convenience
+  setup();
+}
+
+// Quiz scoring (Likert 1-4)
+function bindQuiz(){
+  const form = document.getElementById('quizForm');
+  const ageForm = document.getElementById('ageForm');
+  const out = document.getElementById('quizResult');
+  if (!form) return;
+
+  const banks = {
+    kid: [
+      'I talk to family during meals instead of using devices.',
+      'I stop using screens at least 1 hour before bedtime.',
+      'I can put the tablet/phone away when asked.',
+      'I like to play outside or read without screens.',
+      'I watch videos that are right for my age.'
+    ],
+    teen: [
+      'My screen time doesn’t hurt my sleep or grades.',
+      'I can resist doomscrolling and set app limits.',
+      'I put my phone away during study or with friends.',
+      'Social media doesn’t make me feel worse about myself.',
+      'I take breaks from screens each day.'
+    ],
+    adult: [
+      'I maintain focus without constant notification checks.',
+      'My phone use doesn’t disrupt sleep or relationships.',
+      'I set boundaries (work hours, tech-free spaces).',
+      'I use my phone intentionally rather than habitually.',
+      'I replace scrolling with restorative activities.'
+    ]
+  };
+
+  // Single-question flow
+  let currentGroup = null;
+  let questions = [];
+  let stepIndex = 0;
+  let answers = [];
+
+  function renderStep(){
+    if (!questions.length) return;
+    form.innerHTML = '';
+    const wrapper = document.createElement('div');
+    const progress = document.createElement('p');
+    progress.className = 'muted';
+    progress.textContent = 'Question ' + (stepIndex+1) + ' / ' + questions.length;
+    wrapper.appendChild(progress);
+    const qEl = document.createElement('div');
+    const span = document.createElement('span'); span.className='question fade-in'; span.textContent = questions[stepIndex]; qEl.appendChild(span);
+    const choices = document.createElement('div'); choices.className = 'choices';
+    const labels = ['Never','Rarely','Sometimes','Often'];
+    labels.forEach((label,i)=>{
+      const l = document.createElement('label');
+      const input = document.createElement('input'); input.type='radio'; input.name = 'ans'; input.value = String(i+1); if (i===0) input.required = true;
+      l.appendChild(input); l.appendChild(document.createTextNode(' ' + label));
+      choices.appendChild(l);
+    });
+    qEl.appendChild(choices);
+    wrapper.appendChild(qEl);
+    const btn = document.createElement('button'); btn.className='cta'; btn.type='submit'; btn.textContent = (stepIndex === questions.length-1) ? 'Finish' : 'Next';
+    wrapper.appendChild(btn);
+    form.appendChild(wrapper);
+    form.style.display = '';
+
+    // update progress bar
+    const bar = document.getElementById('quizProgress');
+    if (bar){
+      const pct = Math.round(((stepIndex) / questions.length) * 100);
+      bar.style.width = pct + '%';
+    }
+  }
+
+  if (ageForm){
+    ageForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const data = new FormData(ageForm);
+      const group = data.get('ageGroup');
+      if (!group) return;
+      currentGroup = String(group);
+      questions = banks[currentGroup].slice();
+      stepIndex = 0; answers = [];
+      out.textContent='';
+      renderStep();
+    });
+  }
+
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const data = new FormData(form);
+    const val = Number(data.get('ans')||0);
+    if (!val) return; // required ensures selection
+    answers.push(val);
+    if (stepIndex < questions.length - 1){
+      stepIndex += 1;
+      renderStep();
+      return;
+    }
+    // finished
+    const count = answers.length;
+    const sum = answers.reduce((a,b)=>a+b,0);
+    const min = 1*count, max = 4*count;
+    const pct = Math.round(((sum - min) / (max - min)) * 100);
+    let msg = '';
+    if (pct <= 25) msg = 'Low risk — healthy habits!';
+    else if (pct <= 60) msg = 'Moderate risk — add gentle limits.';
+    else msg = 'High risk — consider structured routines and screen-free zones.';
+    out.textContent = 'Score: ' + sum + ' / ' + max + ' (' + pct + '%) — ' + msg;
+    updateCurrentUser((u)=>{
+      u = ensureProgressShape(u);
+      u.progress.quizzesTaken += 1;
+      u.progress.lastQuizScore = sum;
+      u.progress.quizScores.push(sum);
+      if (!Array.isArray(u.progress.quizScoresPct)) u.progress.quizScoresPct = [];
+      u.progress.quizScoresPct.push(pct);
+      if (!Array.isArray(u.progress.quizHistory)) u.progress.quizHistory = [];
+      u.progress.quizHistory.push({ group: currentGroup, sum, max, pct, t: Date.now() });
+      if (u.progress.quizScores.length > 10) u.progress.quizScores = u.progress.quizScores.slice(-10);
+      if (u.progress.quizScoresPct.length > 10) u.progress.quizScoresPct = u.progress.quizScoresPct.slice(-10);
+      if (u.progress.quizHistory.length > 10) u.progress.quizHistory = u.progress.quizHistory.slice(-10);
+      return u;
+    });
+    renderProfile();
+    form.style.display = 'none';
+    const bar = document.getElementById('quizProgress'); if (bar) bar.style.width = '100%';
+  });
+}
+
+// Dashboard rendering
+function renderDashboard(){
+  const user = getCurrentUser();
+  if (!user) return;
+  ensureProgressShape(user);
+  const p = user.progress;
+  const ovGames = document.getElementById('ovGames');
+  const ovBest = document.getElementById('ovBest');
+  const ovAvg = document.getElementById('ovAvg');
+  const ovQuizzes = document.getElementById('ovQuizzes');
+  const ovLastScore = document.getElementById('ovLastScore');
+  if (ovGames) ovGames.textContent = String(p.gamesPlayed);
+  if (ovBest) ovBest.textContent = (p.bestReactionMs === Infinity) ? '—' : (p.bestReactionMs + ' ms');
+  if (ovQuizzes) ovQuizzes.textContent = String(p.quizzesTaken);
+  if (ovLastScore) ovLastScore.textContent = p.lastQuizScore ? String(p.lastQuizScore) : '—';
+
+  const rh = p.reactionHistoryMs;
+  const qb = p.quizScores;
+  const qbPct = p.quizScoresPct;
+  const reactionBars = document.getElementById('reactionBars');
+  const quizBars = document.getElementById('quizBars');
+  const reactionEmpty = document.getElementById('reactionEmpty');
+  const quizEmpty = document.getElementById('quizEmpty');
+
+  if (reactionBars){ reactionBars.innerHTML = ''; }
+  if (quizBars){ quizBars.innerHTML = ''; }
+
+  if (rh && rh.length){
+    if (reactionEmpty) reactionEmpty.style.display = 'none';
+    const max = Math.max(...rh);
+    rh.forEach((v,i)=>{
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      const height = Math.max(8, Math.round((v / max) * 100));
+      bar.style.height = height + '%';
+      bar.setAttribute('data-label', v + 'ms');
+      reactionBars.appendChild(bar);
+    });
+    const avg = Math.round(rh.reduce((a,b)=>a+b,0)/rh.length);
+    if (ovAvg) ovAvg.textContent = String(avg) + ' ms';
+  } else {
+    if (reactionEmpty) reactionEmpty.style.display = '';
+    if (ovAvg) ovAvg.textContent = '—';
+  }
+
+  if ((qbPct && qbPct.length) || (qb && qb.length)){
+    if (quizEmpty) quizEmpty.style.display = 'none';
+    const arr = (qbPct && qbPct.length) ? qbPct : qb.map(v=> Math.round((v/20)*100));
+    arr.forEach((v,i)=>{
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      const height = Math.max(8, Math.round(v));
+      bar.style.height = height + '%';
+      bar.setAttribute('data-label', String(v) + '%');
+      quizBars.appendChild(bar);
+    });
+  } else {
+    if (quizEmpty) quizEmpty.style.display = '';
+  }
+  // Quiz history list
+  const hist = p.quizHistory || [];
+  const list = document.getElementById('quizHistory');
+  const empty = document.getElementById('quizHistoryEmpty');
+  if (list){
+    list.innerHTML = '';
+    if (!hist.length){ if (empty) empty.style.display=''; }
+    else {
+      if (empty) empty.style.display='none';
+      hist.slice(-10).reverse().forEach(item=>{
+        const li = document.createElement('li');
+        const when = new Date(item.t).toLocaleString();
+        li.innerHTML = '<span>'+ (item.group||'quiz') + ' — ' + item.sum + '/' + item.max + ' (' + item.pct + '%)</span><small>'+when+'</small>';
+        list.appendChild(li);
+      });
+    }
+  }
+  // External games report
+  const gamesList = document.getElementById('extGamesList');
+  const gamesEmpty = document.getElementById('extGamesEmpty');
+  if (gamesList){
+    gamesList.innerHTML = '';
+    const entries = Object.entries(p.gamesById || {});
+    if (!entries.length){ if (gamesEmpty) gamesEmpty.style.display=''; }
+    else {
+      if (gamesEmpty) gamesEmpty.style.display='none';
+      entries.forEach(([id,g])=>{
+        const li = document.createElement('li');
+        const parts = [];
+        parts.push((g.name || id));
+        parts.push('plays: ' + (g.count || 0));
+        if (typeof g.bestScore === 'number') parts.push('best score: ' + g.bestScore);
+        if (typeof g.bestTimeMs === 'number') parts.push('best time: ' + g.bestTimeMs + ' ms');
+        li.innerHTML = '<span>'+parts.join(' — ')+'</span>';
+        gamesList.appendChild(li);
+      });
+    }
+  }
+}
+
+// Generic game progress API for external HTML5 games
+// Usage inside a game page (same origin):
+// <script src="../script.js"></script>
+// <script> window.DW.recordGameResult({ gameId:'my-game', name:'My Game', count:1, bestTimeMs:1234 }); </script>
+if (!window.DW){ window.DW = {}; }
+window.DW.recordGameResult = function(result){
+  // result: { gameId: string, name?: string, count?: number, bestTimeMs?: number, bestScore?: number }
+  if (!result || !result.gameId) return;
+  updateCurrentUser((u)=>{
+    u = ensureProgressShape(u);
+    const id = result.gameId;
+    if (!u.progress.gamesById[id]) u.progress.gamesById[id] = { count:0, name: result.name || id };
+    const g = u.progress.gamesById[id];
+    g.name = result.name || g.name || id;
+    g.count = (g.count || 0) + (result.count || 1);
+    // Track best metrics if provided
+    if (typeof result.bestTimeMs === 'number'){
+      if (typeof g.bestTimeMs !== 'number' || result.bestTimeMs < g.bestTimeMs){ g.bestTimeMs = result.bestTimeMs; }
+    }
+    if (typeof result.bestScore === 'number'){
+      if (typeof g.bestScore !== 'number' || result.bestScore > g.bestScore){ g.bestScore = result.bestScore; }
+    }
+    // Also increment overall gamesPlayed
+    u.progress.gamesPlayed += (result.count || 1);
+    return u;
+  });
+  renderProfile();
+};
+
+// External games config and rendering
+window.DW_GAMES = window.DW_GAMES || [
+  // Example entries (edit or replace with your own):
+  // { id: 'snake', name: 'Snake', href: 'games/snake/index.html' },
+  // { id: 'tetris', name: 'Tetris', href: 'games/tetris/index.html' },
+];
+function renderExternalGames(){
+  const list = document.getElementById('externalGames');
+  if (!list) return;
+  list.innerHTML = '';
+  const items = window.DW_GAMES || [];
+  if (!items.length){
+    const li = document.createElement('li'); li.className='muted'; li.textContent='No games configured yet.'; list.appendChild(li);
+    return;
+  }
+  items.forEach((g)=>{
+    const li = document.createElement('li');
+    const a = document.createElement('a'); a.href = g.href; a.target = '_blank'; a.rel='noopener'; a.textContent = g.name || g.id;
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+}
+
+// Reviews storage & UI
+const REVIEWS_KEY = 'dw_reviews';
+function readReviews(){
+  try { return JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]'); } catch { return []; }
+}
+function writeReviews(arr){ localStorage.setItem(REVIEWS_KEY, JSON.stringify(arr)); }
+function renderReviews(){
+  const list = document.getElementById('reviewsList');
+  if (!list) return;
+  const reviews = readReviews().slice(-12).reverse();
+  list.innerHTML = '';
+  if (!reviews.length){
+    const d = document.createElement('div'); d.className='muted'; d.textContent='No reviews yet. Be the first to share.'; list.appendChild(d); return;
+  }
+  reviews.forEach(r=>{
+    const card = document.createElement('div'); card.className='review-card';
+    const meta = document.createElement('div'); meta.className='meta';
+    const who = document.createElement('span'); who.textContent = r.name || 'Anonymous';
+    const when = document.createElement('span'); when.textContent = new Date(r.t).toLocaleDateString();
+    meta.appendChild(who); meta.appendChild(when);
+    const stars = document.createElement('div'); stars.className='stars'; stars.textContent = '★★★★★'.slice(0, r.rating) + '☆☆☆☆☆'.slice(0, 5 - r.rating);
+    const txt = document.createElement('p'); txt.textContent = r.text;
+    card.appendChild(meta); card.appendChild(stars); card.appendChild(txt);
+    list.appendChild(card);
+  });
+}
+function initReviewsUI(){
+  renderReviews();
+  const wrap = document.getElementById('reviewFormWrap');
+  const form = document.getElementById('reviewForm');
+  const msg = document.getElementById('reviewMsg');
+  const hint = document.getElementById('reviewLoginHint');
+  const session = getSession();
+  if (!wrap) return;
+  if (!session){
+    if (form) form.classList.add('hidden');
+    if (hint) hint.classList.remove('hidden');
+    return;
+  }
+  if (hint) hint.classList.add('hidden');
+  if (!form) return;
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const rating = Number(document.getElementById('reviewRating').value || 0);
+    const text = String(document.getElementById('reviewText').value || '').trim();
+    if (!rating || !text){ if (msg) msg.textContent = 'Please provide a rating and a short comment.'; return; }
+    const user = getCurrentUser();
+    const entry = { name: (user?.name || user?.email || 'Anonymous'), rating, text, t: Date.now() };
+    const arr = readReviews(); arr.push(entry); writeReviews(arr);
+    if (msg) msg.textContent = 'Thanks for sharing!';
+    (document.getElementById('reviewText')).value = '';
+    (document.getElementById('reviewRating')).value = '';
+    renderReviews();
+  });
+}
+
+// FAQ toggle
+function initFAQ(){
+  const list = document.getElementById('faqList');
+  if (!list) return;
+  list.querySelectorAll('.faq-item .faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      const answer = btn.parentElement.querySelector('.faq-a');
+      if (answer){
+        if (expanded){ answer.hidden = true; }
+        else { answer.hidden = false; }
+      }
+    });
+  });
+}
+
+// Tips (daily deterministic rotation)
+const TIPS = [
+  'Set app limits for the two biggest time sinks.',
+  'Charge your phone outside the bedroom to improve sleep.',
+  'Create a tech-free zone at meals.',
+  'Turn off non-essential notifications for 24 hours.',
+  'Ask “Why am I opening my phone?” before you unlock.',
+  'Schedule a 10-minute scroll window, not all day.',
+  'Move distracting apps off your home screen.'
+];
+function initDailyTip(){
+  const el = document.getElementById('tipCard'); if (!el) return;
+  const dayIndex = Math.floor(Date.now() / (1000*60*60*24)) % TIPS.length;
+  el.textContent = TIPS[dayIndex];
+}
+
+// Dashboard: Check-ins, Pomodoro, Habits, Export/Reset
+function ensureDashShape(u){
+  ensureProgressShape(u);
+  const p = u.progress;
+  if (!p.checkins) p.checkins = { last: null, streak: 0, weeklyGoal: 3, badges: [] };
+  if (!Array.isArray(p.focusLogs)) p.focusLogs = [];
+  if (!Array.isArray(p.habits)) p.habits = [
+    { name: 'No phone at meals', week: [0,0,0,0,0,0,0] },
+    { name: '1-hr pre-sleep no screens', week: [0,0,0,0,0,0,0] },
+    { name: 'Daily 10-min walk', week: [0,0,0,0,0,0,0] }
+  ];
+  return u;
+}
+function sameDay(a,b){ if (!a||!b) return false; const da=new Date(a), db=new Date(b); return da.getFullYear()===db.getFullYear() && da.getMonth()===db.getMonth() && da.getDate()===db.getDate(); }
+function dayOfWeek(ts){ return new Date(ts).getDay(); }
+
+function initDashboardExtras(){
+  const session = getSession(); if (!session) return;
+  // Check-in
+  const btn = document.getElementById('checkInBtn');
+  const streakOut = document.getElementById('streakCount');
+  const goalOut = document.getElementById('weeklyGoal');
+  const badgeOut = document.getElementById('badgeList');
+  if (btn){
+    btn.addEventListener('click', ()=>{
+      updateCurrentUser(u=>{
+        u = ensureDashShape(u);
+        const now = Date.now();
+        if (sameDay(u.progress.checkins.last, now)) return u; // already checked
+        // compute yesterday to maintain streak
+        const y = new Date(now); y.setDate(y.getDate()-1);
+        const isYesterday = sameDay(u.progress.checkins.last, y.getTime());
+        u.progress.checkins.streak = isYesterday ? (u.progress.checkins.streak+1) : 1;
+        u.progress.checkins.last = now;
+        // badges
+        const s = u.progress.checkins.streak;
+        if (s===3 && !u.progress.checkins.badges.includes('3-day')) u.progress.checkins.badges.push('3-day');
+        if (s===7 && !u.progress.checkins.badges.includes('7-day')) u.progress.checkins.badges.push('7-day');
+        if (s===14 && !u.progress.checkins.badges.includes('14-day')) u.progress.checkins.badges.push('14-day');
+        return u;
+      });
+      renderDashboardExtras();
+    });
+  }
+
+  // Focus timer
+  const startBtn = document.getElementById('focusStart');
+  const stopBtn = document.getElementById('focusStop');
+  const minsInput = document.getElementById('focusMinutes');
+  const display = document.getElementById('focusDisplay');
+  let timerId = null; let endAt = 0;
+  function tick(){
+    const remain = Math.max(0, Math.round((endAt - Date.now())/1000));
+    const mm = String(Math.floor(remain/60)).padStart(2,'0');
+    const ss = String(remain%60).padStart(2,'0');
+    if (display) display.textContent = mm+':'+ss;
+    if (remain<=0){
+      clearInterval(timerId); timerId=null;
+      updateCurrentUser(u=>{ u=ensureDashShape(u); u.progress.focusLogs.push({ m:Number(minsInput.value||25), t:Date.now() }); if (u.progress.focusLogs.length>10) u.progress.focusLogs=u.progress.focusLogs.slice(-10); return u; });
+      renderDashboardExtras();
+    }
+  }
+  if (startBtn) startBtn.addEventListener('click', ()=>{ const m = Math.max(1, Math.min(120, Number(minsInput.value||25))); endAt = Date.now()+m*60000; if (timerId) clearInterval(timerId); timerId=setInterval(tick, 250); tick(); });
+  if (stopBtn) stopBtn.addEventListener('click', ()=>{ if (timerId){ clearInterval(timerId); timerId=null; if (display) display.textContent = '00:00'; } });
+
+  // Habits
+  const habitsRoot = document.getElementById('habits');
+  if (habitsRoot){
+    habitsRoot.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button[data-habit]');
+      if (!btn) return;
+      const hi = Number(btn.getAttribute('data-habit'));
+      const di = Number(btn.getAttribute('data-day'));
+      updateCurrentUser(u=>{ u=ensureDashShape(u); u.progress.habits[hi].week[di] = u.progress.habits[hi].week[di] ? 0 : 1; return u; });
+      renderDashboardExtras();
+    });
+  }
+  const resetWeek = document.getElementById('habitsResetWeek');
+  if (resetWeek) resetWeek.addEventListener('click', ()=>{ updateCurrentUser(u=>{ u=ensureDashShape(u); u.progress.habits.forEach(h=>h.week=[0,0,0,0,0,0,0]); return u; }); renderDashboardExtras(); });
+
+  // Export/Reset
+  const exportBtn = document.getElementById('exportData');
+  const resetBtn = document.getElementById('resetData');
+  if (exportBtn) exportBtn.addEventListener('click', ()=>{
+    const user = getCurrentUser(); if (!user) return;
+    const data = JSON.stringify(user, null, 2);
+    const blob = new Blob([data], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'digital-wellbeing-data.json'; a.click(); URL.revokeObjectURL(url);
+  });
+  if (resetBtn) resetBtn.addEventListener('click', ()=>{
+    if (!confirm('This will clear your local data on this device. Continue?')) return;
+    localStorage.clear(); location.reload();
+  });
+
+  renderDashboardExtras();
+}
+
+function renderDashboardExtras(){
+  const user = getCurrentUser(); if (!user) return; ensureDashShape(user);
+  const { checkins, focusLogs, habits } = user.progress;
+  const streakOut = document.getElementById('streakCount'); if (streakOut) streakOut.textContent = String(checkins.streak||0);
+  const goalOut = document.getElementById('weeklyGoal'); if (goalOut) goalOut.textContent = String(checkins.weeklyGoal||3);
+  const badgeOut = document.getElementById('badgeList'); if (badgeOut) badgeOut.textContent = (checkins.badges&&checkins.badges.length)? checkins.badges.join(', ') : '—';
+  // focus logs
+  const logs = document.getElementById('focusLogs'); if (logs){ logs.innerHTML=''; (focusLogs||[]).slice(-5).reverse().forEach(l=>{ const li=document.createElement('li'); const when=new Date(l.t).toLocaleString(); li.innerHTML='<span>'+l.m+' min</span><small>'+when+'</small>'; logs.appendChild(li); }); }
+  // habits
+  const root = document.getElementById('habits');
+  if (root){
+    root.innerHTML = '';
+    const dayLabels = ['S','M','T','W','T','F','S'];
+    habits.forEach((h,hi)=>{
+      const box = document.createElement('div'); box.className='habit';
+      const title = document.createElement('h4'); title.textContent = h.name; box.appendChild(title);
+      const grid = document.createElement('div'); grid.className='habit-grid';
+      h.week.forEach((v,di)=>{
+        const b = document.createElement('button'); b.type='button'; b.textContent = dayLabels[di]; b.setAttribute('data-habit', String(hi)); b.setAttribute('data-day', String(di)); if (v) b.classList.add('on'); grid.appendChild(b);
+      });
+      box.appendChild(grid); root.appendChild(box);
+    });
+  }
+}
+
+// Mobile menu toggle functionality
+function initMobileMenu() {
+  const menuToggle = document.getElementById('menuToggle');
+  const siteNav = document.getElementById('siteNav');
+  
+  if (menuToggle && siteNav) {
+    menuToggle.addEventListener('click', function() {
+      siteNav.classList.toggle('mobile-open');
+      // Change icon when menu is open
+      if (siteNav.classList.contains('mobile-open')) {
+        menuToggle.textContent = '✕';
+      } else {
+        menuToggle.textContent = '☰';
+      }
+    });
+    
+    // Close menu when clicking on a link
+    const navLinks = siteNav.querySelectorAll('a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', function() {
+        siteNav.classList.remove('mobile-open');
+        menuToggle.textContent = '☰';
+      });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const isClickInsideNav = siteNav.contains(event.target);
+      const isClickOnToggle = menuToggle.contains(event.target);
+      
+      if (!isClickInsideNav && !isClickOnToggle && siteNav.classList.contains('mobile-open')) {
+        siteNav.classList.remove('mobile-open');
+        menuToggle.textContent = '☰';
+      }
+    });
+  }
+}
+
+// Initialize mobile menu on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMobileMenu);
+} else {
+  initMobileMenu();
+}
+
+

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Games & Quiz - Digital Well-Being</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">📵</span>
+      <h1>Games & Quiz</h1>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" type="button">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="index.html">Home</a>
+      <a href="/Games/index.html" class="active">Games</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="resources.html">Resources</a>
+      <a href="dashboard.html">Dashboard</a>
+      <span id="nav-username" class="muted hidden"></span>
+      <a href="login.html" id="nav-auth">Login / Register</a>
+      <button id="nav-logout" class="btn-link hidden" type="button">Logout</button>
+    </nav>
+  </header>
+
+  <main class="games-container">
+    <section class="gate" id="gate">
+      <h2>Login Required</h2>
+      <p>You must be logged in to access games and quizzes.</p>
+      <a class="cta" href="login.html">Go to Login</a>
+    </section>
+
+    <section class="content hidden" id="content">
+      <div class="welcome">
+        <p>Welcome, <strong id="userName"></strong>!</p>
+      </div>
+
+      <div class="cards">
+        <aside class="card profile" id="profileCard">
+          <h3>Your Progress</h3>
+          <ul class="stats">
+            <li><span>Games played</span><strong id="statGamesPlayed">0</strong></li>
+            <li><span>Best reaction</span><strong id="statBestReaction">—</strong></li>
+            <li><span>Quizzes taken</span><strong id="statQuizzes">0</strong></li>
+            <li><span>Last quiz score</span><strong id="statLastScore">—</strong></li>
+          </ul>
+          <h4 class="muted" style="margin:8px 0 0">Per-Game</h4>
+          <ul class="stats" id="statPerGame"></ul>
+          <div class="row"><a class="cta small" href="quiz.html">Go to Quiz</a></div>
+        </aside>
+
+        <article class="card">
+          <h3>Reaction Timer</h3>
+          <p>Practice patience: wait for green, then click as fast as you can.</p>
+          <div class="reaction" id="reaction">
+            <div class="reaction-box" id="reactionBox" role="button" tabindex="0" aria-label="Reaction box"></div>
+            <p id="reactionStatus" class="muted">Press Start to begin.</p>
+            <div class="row">
+              <button id="reactionStart" class="cta small" type="button">Start</button>
+              <span id="reactionResult" class="stat"></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Typing Challenge</h3>
+          <p>Type the shown word as fast as you can. Three rounds.</p>
+          <div class="typing" id="typingGame">
+            <div class="row"><span id="typingWord" class="stat"></span></div>
+            <input id="typingInput" type="text" placeholder="Type here" />
+            <div class="row">
+              <button id="typingStart" class="cta small" type="button">Start</button>
+              <span id="typingResult" class="stat"></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Memory Match (6 cards)</h3>
+          <p>Flip cards to find pairs. Fewer moves is better.</p>
+          <div class="memory" id="memoryGame">
+            <div class="grid-memory" id="memoryGrid"></div>
+            <div class="row">
+              <button id="memoryStart" class="cta small" type="button">New Game</button>
+              <span id="memoryStatus" class="stat"></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>External Games</h3>
+          <p class="muted">Games added to your folder. Click to open in a new tab.</p>
+          <ul class="stats" id="externalGames"></ul>
+          <p class="muted">To track plays, call <code>window.DW.recordGameResult({ gameId, name, count:1 })</code> from the game.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>© <span id="year"></span> Digital Well-Being.</small>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      const year = document.getElementById('year');
+      if (year) year.textContent = new Date().getFullYear();
+      gateContent();
+      initAuthNav();
+      bindReaction();
+      bindQuiz();
+      renderExternalGames();
+    });
+  </script>
+</body>
+</html>
+
+
