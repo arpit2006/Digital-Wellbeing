@@ -34,9 +34,67 @@
 
   <main>
     <section class="hero">
-      <h2>Find Balance In A Hyperconnected World</h2>
-      <p>Learn about smartphone addiction, build healthy habits, and test yourself with mindful games.</p>
-      <a class="cta" href="login.html">Get Started</a>
+      <div class="hero-background">
+        <div class="floating-shapes">
+          <div class="shape shape-1"></div>
+          <div class="shape shape-2"></div>
+          <div class="shape shape-3"></div>
+          <div class="shape shape-4"></div>
+        </div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-badge">✨ Digital Wellness Platform</div>
+        <h2 class="hero-title">
+          <span class="gradient-text">Find Balance</span> In A Hyperconnected World
+        </h2>
+        <p class="hero-description">Learn about smartphone addiction, build healthy habits, and test yourself with mindful games.</p>
+        <div class="hero-actions">
+          <a class="cta hero-cta" href="login.html">Get Started</a>
+          <a class="cta secondary hero-cta-secondary" href="quiz.html">Take Quiz</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-box">
+            <div class="stat-number" data-count="1000">0</div>
+            <div class="stat-label">Users</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number" data-count="500">0</div>
+            <div class="stat-label">Quizzes Taken</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number" data-count="95">0</div>
+            <div class="stat-label">% Success Rate</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="features-container">
+        <h2 class="section-title">Why Choose Digital Well-Being?</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3>Interactive Quizzes</h3>
+            <p>Age-appropriate assessments to understand your digital habits and risk levels.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎮</div>
+            <h3>Mindful Games</h3>
+            <p>Engaging games that help build focus, patience, and better digital habits.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Progress Tracking</h3>
+            <p>Monitor your journey with detailed analytics and personalized insights.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">💡</div>
+            <h3>Expert Resources</h3>
+            <p>Access curated articles, tips, and tools from digital wellness experts.</p>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="slideshow" aria-label="Digital addiction awareness slides">
@@ -79,13 +137,19 @@
     </section>
 
     <section class="tips" aria-label="Daily tips">
-      <h2 style="margin:10px 20px">Today's Tip</h2>
+      <h2>Today's Tip</h2>
       <div class="tips-card" id="tipCard"></div>
     </section>
 
     <section class="cta-strip">
-      <p>Access mindful games and a quick quiz — <strong>login required</strong>.</p>
-      <a class="cta secondary" href="games.html">Go to Games & Quiz</a>
+      <div class="cta-strip-content">
+        <div class="cta-strip-icon">🚀</div>
+        <div class="cta-strip-text">
+          <h3>Ready to Transform Your Digital Life?</h3>
+          <p>Access mindful games and interactive quizzes — <strong>login required</strong>.</p>
+        </div>
+        <a class="cta secondary cta-strip-button" href="games.html">Go to Games & Quiz</a>
+      </div>
     </section>
 
     <section class="reviews" aria-label="User reviews">
@@ -124,9 +188,15 @@
     </section>
     <section class="pledge" aria-label="7-day mindful phone challenge">
       <div class="pledge-inner">
+        <div class="pledge-icon">📱➡️✨</div>
         <h2>7‑Day Mindful Phone Challenge</h2>
-        <p class="muted">Join a week of small changes for a calmer mind.</p>
-        <a class="cta" href="quiz.html">Take the first step</a>
+        <p class="muted">Join a week of small changes for a calmer mind. Track your progress and build lasting habits.</p>
+        <div class="pledge-features">
+          <div class="pledge-feature">✓ Daily check-ins</div>
+          <div class="pledge-feature">✓ Progress tracking</div>
+          <div class="pledge-feature">✓ Personalized tips</div>
+        </div>
+        <a class="cta pledge-cta" href="quiz.html">Take the first step</a>
       </div>
     </section>
     <section class="faq" aria-label="Frequently Asked Questions">
@@ -182,7 +252,50 @@
       initReviewsUI();
       initFAQ();
       initDailyTip();
+      initAnimatedCounters();
     });
+
+    // Animated counter for hero stats
+    function initAnimatedCounters() {
+      const counters = document.querySelectorAll('.stat-number[data-count]');
+      
+      const animateCounter = (counter) => {
+        const target = parseInt(counter.getAttribute('data-count'));
+        const duration = 2000; // 2 seconds
+        const increment = target / (duration / 16); // 60fps
+        let current = 0;
+        
+        const updateCounter = () => {
+          current += increment;
+          if (current < target) {
+            counter.textContent = Math.floor(current);
+            requestAnimationFrame(updateCounter);
+          } else {
+            counter.textContent = target;
+            // Add + for large numbers
+            if (target >= 1000) {
+              counter.textContent = target + '+';
+            } else if (target >= 100) {
+              counter.textContent = target + '%';
+            }
+          }
+        };
+        
+        // Start animation when element is visible
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              updateCounter();
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.5 });
+        
+        observer.observe(counter);
+      };
+      
+      counters.forEach(animateCounter);
+    }
   </script>
 </body>
 

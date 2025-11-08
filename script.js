@@ -354,7 +354,20 @@ function bindMemory(){
 function bindQuiz(){
   const form = document.getElementById('quizForm');
   const ageForm = document.getElementById('ageForm');
-  const out = document.getElementById('quizResult');
+  const resultContainer = document.getElementById('quizResult');
+  const scorePercentageEl = document.getElementById('scorePercentage');
+  const scoreFractionEl = document.getElementById('scoreFraction');
+  const quizMessageEl = document.getElementById('quizMessage');
+  const quizDetailsEl = document.getElementById('quizDetails');
+  const retakeBtn = document.getElementById('retakeQuiz');
+  const shareBtn = document.getElementById('shareResults');
+  const scoreCircleProgress = document.getElementById('scoreCircleProgress');
+  const recommendationsEl = document.getElementById('quizRecommendations');
+  const recommendationsList = document.getElementById('recommendationsList');
+  const quizStats = document.getElementById('quizStats');
+  const statQuestions = document.getElementById('statQuestions');
+  const statAverage = document.getElementById('statAverage');
+  const statRiskLevel = document.getElementById('statRiskLevel');
   if (!form) return;
 
   const banks = {
@@ -429,9 +442,90 @@ function bindQuiz(){
       currentGroup = String(group);
       questions = banks[currentGroup].slice();
       stepIndex = 0; answers = [];
-      out.textContent='';
+      if (resultContainer) resultContainer.style.display = 'none';
       renderStep();
     });
+  }
+
+  // Retake quiz button
+  if (retakeBtn) {
+    retakeBtn.addEventListener('click', () => {
+      if (resultContainer) resultContainer.style.display = 'none';
+      if (ageForm) ageForm.style.display = '';
+      if (recommendationsEl) recommendationsEl.style.display = 'none';
+      if (quizStats) quizStats.style.display = 'none';
+      stepIndex = 0;
+      answers = [];
+      questions = [];
+      currentGroup = null;
+      const bar = document.getElementById('quizProgress');
+      if (bar) bar.style.width = '0%';
+    });
+  }
+
+  // Share results button
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      const user = getCurrentUser();
+      if (!user || !user.progress.lastQuizScore) return;
+      
+      const pct = user.progress.quizScoresPct && user.progress.quizScoresPct.length > 0 
+        ? user.progress.quizScoresPct[user.progress.quizScoresPct.length - 1] 
+        : 0;
+      
+      let shareText = `🎯 Digital Well-Being Quiz Results: ${pct}%\n\n`;
+      if (pct <= 25) {
+        shareText += '✨ Excellent! I have healthy digital habits!\n';
+      } else if (pct <= 60) {
+        shareText += '👍 Good! Working on improving my digital wellness.\n';
+      } else {
+        shareText += '📱 Taking steps to improve my digital habits!\n';
+      }
+      shareText += '\nTake the quiz: Digital Well-Being Assessment';
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'Digital Well-Being Quiz Results',
+          text: shareText
+        }).catch(() => {
+          copyToClipboard(shareText);
+        });
+      } else {
+        copyToClipboard(shareText);
+      }
+    });
+  }
+
+  // Copy to clipboard helper
+  function copyToClipboard(text) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (shareBtn) {
+          const originalText = shareBtn.textContent;
+          shareBtn.textContent = '✓ Copied!';
+          setTimeout(() => {
+            shareBtn.textContent = originalText;
+          }, 2000);
+        }
+      });
+    } else {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      if (shareBtn) {
+        const originalText = shareBtn.textContent;
+        shareBtn.textContent = '✓ Copied!';
+        setTimeout(() => {
+          shareBtn.textContent = originalText;
+        }, 2000);
+      }
+    }
   }
 
   form.addEventListener('submit', (e)=>{
@@ -450,11 +544,134 @@ function bindQuiz(){
     const sum = answers.reduce((a,b)=>a+b,0);
     const min = 1*count, max = 4*count;
     const pct = Math.round(((sum - min) / (max - min)) * 100);
-    let msg = '';
-    if (pct <= 25) msg = 'Low risk — healthy habits!';
-    else if (pct <= 60) msg = 'Moderate risk — add gentle limits.';
-    else msg = 'High risk — consider structured routines and screen-free zones.';
-    out.textContent = 'Score: ' + sum + ' / ' + max + ' (' + pct + '%) — ' + msg;
+    
+    // Determine category and styling
+    let category, msg, icon, details, categoryClass, recommendations, riskLevel;
+    const averageResponse = (sum / count).toFixed(1);
+    
+    if (pct <= 25) {
+      category = 'Excellent';
+      categoryClass = 'excellent';
+      msg = '🎉 Excellent! Low Risk';
+      icon = '✨';
+      details = 'You have healthy digital habits! Keep maintaining this balance and continue being mindful of your screen time.';
+      riskLevel = 'Low';
+      recommendations = [
+        'Continue maintaining healthy screen time boundaries',
+        'Keep using tech-free zones during meals and bedtime',
+        'Stay mindful of your digital habits',
+        'Share your healthy habits with others'
+      ];
+    } else if (pct <= 60) {
+      category = 'Good';
+      categoryClass = 'good';
+      msg = '👍 Good! Moderate Risk';
+      icon = '💡';
+      details = 'You\'re on the right track! Consider adding some gentle limits and screen-free zones to further improve your digital well-being.';
+      riskLevel = 'Moderate';
+      recommendations = [
+        'Set specific screen-free times (meals, 1 hour before bed)',
+        'Use app timers to track and limit usage',
+        'Create tech-free zones in your home',
+        'Take regular breaks from screens every hour',
+        'Try the Pomodoro Technique for focused work'
+      ];
+    } else {
+      category = 'Needs Improvement';
+      categoryClass = 'needs-improvement';
+      msg = '📱 Needs Attention';
+      icon = '🔔';
+      details = 'Consider establishing structured routines, setting screen time limits, and creating tech-free zones. Small changes can make a big difference!';
+      riskLevel = 'High';
+      recommendations = [
+        'Establish a strict bedtime routine without devices',
+        'Set daily screen time limits using built-in phone features',
+        'Create physical boundaries: no phones in bedroom',
+        'Practice the 20-20-20 rule: every 20 minutes, look 20 feet away for 20 seconds',
+        'Schedule regular tech-free activities (reading, exercise, hobbies)',
+        'Consider using focus apps that block distractions',
+        'Join a digital wellness challenge or support group'
+      ];
+    }
+
+    // Update result display with animations
+    if (resultContainer && scorePercentageEl && scoreFractionEl && quizMessageEl && quizDetailsEl) {
+      // Clear previous content
+      scorePercentageEl.textContent = '';
+      scoreFractionEl.textContent = '';
+      quizMessageEl.textContent = '';
+      quizDetailsEl.textContent = '';
+      if (recommendationsList) recommendationsList.innerHTML = '';
+      
+      // Remove previous category classes
+      scorePercentageEl.className = 'score-percentage';
+      quizMessageEl.className = 'quiz-message';
+      if (scoreCircleProgress) scoreCircleProgress.className = 'score-circle-progress';
+      
+      // Add category class
+      scorePercentageEl.classList.add(categoryClass);
+      quizMessageEl.classList.add(categoryClass);
+      if (scoreCircleProgress) scoreCircleProgress.classList.add(categoryClass);
+      
+      // Animate circular progress
+      if (scoreCircleProgress) {
+        const circumference = 2 * Math.PI * 54; // 339.292
+        const offset = circumference - (pct / 100) * circumference;
+        scoreCircleProgress.style.strokeDashoffset = circumference.toString();
+        setTimeout(() => {
+          scoreCircleProgress.style.strokeDashoffset = offset.toString();
+        }, 200);
+      }
+      
+      // Animate score counting up
+      let currentPct = 0;
+      const animateScore = () => {
+        if (currentPct <= pct) {
+          scorePercentageEl.textContent = currentPct + '%';
+          currentPct += 2;
+          setTimeout(animateScore, 30);
+        } else {
+          scorePercentageEl.textContent = pct + '%';
+          // Trigger confetti for excellent scores
+          if (pct <= 25) {
+            triggerConfetti();
+          }
+        }
+      };
+      animateScore();
+      
+      // Set fraction and message
+      scoreFractionEl.textContent = sum + ' / ' + max + ' points';
+      quizMessageEl.innerHTML = '<span class="quiz-icon">' + icon + '</span><br>' + msg;
+      quizDetailsEl.textContent = details;
+      
+      // Show recommendations
+      if (recommendationsEl && recommendationsList && recommendations) {
+        recommendations.forEach(rec => {
+          const li = document.createElement('li');
+          li.textContent = rec;
+          recommendationsList.appendChild(li);
+        });
+        recommendationsEl.style.display = 'block';
+      }
+      
+      // Show statistics
+      if (quizStats && statQuestions && statAverage && statRiskLevel) {
+        statQuestions.textContent = count;
+        statAverage.textContent = averageResponse;
+        statRiskLevel.textContent = riskLevel;
+        quizStats.style.display = 'grid';
+      }
+      
+      // Show result container
+      resultContainer.style.display = 'block';
+      
+      // Scroll to result
+      setTimeout(() => {
+        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+    
     updateCurrentUser((u)=>{
       u = ensureProgressShape(u);
       u.progress.quizzesTaken += 1;
@@ -471,6 +688,7 @@ function bindQuiz(){
     });
     renderProfile();
     form.style.display = 'none';
+    if (ageForm) ageForm.style.display = 'none';
     const bar = document.getElementById('quizProgress'); if (bar) bar.style.width = '100%';
   });
 }
@@ -881,6 +1099,66 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initMobileMenu);
 } else {
   initMobileMenu();
+}
+
+// Confetti animation function
+function triggerConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  const container = canvas.parentElement;
+  const rect = container.getBoundingClientRect();
+  
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  
+  const particles = [];
+  const particleCount = 50;
+  const colors = ['#22d3ee', '#7c3aed', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -10,
+      vx: (Math.random() - 0.5) * 2,
+      vy: Math.random() * 3 + 2,
+      size: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.2
+    });
+  }
+  
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    particles.forEach((particle, index) => {
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.vy += 0.1; // gravity
+      particle.rotation += particle.rotationSpeed;
+      
+      ctx.save();
+      ctx.translate(particle.x, particle.y);
+      ctx.rotate(particle.rotation);
+      ctx.fillStyle = particle.color;
+      ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+      ctx.restore();
+      
+      if (particle.y > canvas.height) {
+        particles.splice(index, 1);
+      }
+    });
+    
+    if (particles.length > 0) {
+      requestAnimationFrame(animate);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  
+  animate();
 }
 
 

@@ -45,7 +45,45 @@
             <button class="cta small" type="submit">Start Quiz</button>
           </form>
           <form id="quizForm" class="quiz" style="display:none"></form>
-          <p id="quizResult" class="stat" style="margin-top:12px"></p>
+          <div id="quizResult" class="quiz-result-container" style="display:none">
+            <div class="quiz-result-content">
+              <div class="quiz-score-wrapper">
+                <div class="score-circle-container">
+                  <svg class="score-circle" viewBox="0 0 120 120">
+                    <circle class="score-circle-bg" cx="60" cy="60" r="54"></circle>
+                    <circle class="score-circle-progress" id="scoreCircleProgress" cx="60" cy="60" r="54"></circle>
+                  </svg>
+                  <div class="score-percentage" id="scorePercentage"></div>
+                </div>
+                <div class="score-fraction" id="scoreFraction"></div>
+              </div>
+              <div class="quiz-message" id="quizMessage"></div>
+              <div class="quiz-details" id="quizDetails"></div>
+              <div class="quiz-recommendations" id="quizRecommendations" style="display:none">
+                <h4 class="recommendations-title">💡 Recommendations</h4>
+                <ul class="recommendations-list" id="recommendationsList"></ul>
+              </div>
+              <div class="quiz-stats" id="quizStats" style="display:none">
+                <div class="stat-item">
+                  <span class="stat-label">Questions Answered</span>
+                  <span class="stat-value" id="statQuestions"></span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Average Response</span>
+                  <span class="stat-value" id="statAverage"></span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Risk Level</span>
+                  <span class="stat-value" id="statRiskLevel"></span>
+                </div>
+              </div>
+              <div class="quiz-actions">
+                <button class="cta" id="retakeQuiz">Take Quiz Again</button>
+                <button class="cta secondary" id="shareResults" style="margin-top:12px">Share Results</button>
+              </div>
+            </div>
+            <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+          </div>
         </article>
       </div>
     </section>
