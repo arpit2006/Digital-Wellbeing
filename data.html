@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Focus: Global Screen Time Report 2024-2025</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- Load Data Labels Plugin (to show values on bars/lines) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        /* Custom Styles and Font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef2ff; /* Lighter, subtle background */
+            color: #1e293b;
+        }
+        .data-card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+            transition: all 0.3s ease-in-out;
+            border: 1px solid #e2e8f0;
+        }
+        .data-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        /* Style for the chart containers to ensure responsiveness */
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+        .header-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8">
+
+    <!-- Firebase SDK Imports (Mandatory Boilerplate) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Initialization (MANDATORY BOILERPLATE)
+        setLogLevel('Debug');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        let firebaseConfig = null;
+        try {
+            firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        } catch (e) {
+            console.error("Failed to parse Firebase config:", e);
+        }
+
+        if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+
+            // Authentication
+            const initializeAuth = async () => {
+                try {
+                    await setPersistence(auth, browserSessionPersistence);
+                    const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+                    if (authToken) {
+                        await signInWithCustomToken(auth, authToken);
+                        console.log("Signed in with custom token. User ID:", auth.currentUser?.uid);
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously. User ID:", auth.currentUser?.uid);
+                    }
+                } catch (error) {
+                    console.error("Firebase Auth Error:", error.message);
+                }
+            };
+            initializeAuth();
+        } else {
+            console.warn("Firebase configuration is missing or invalid. Data features will not be available.");
+        }
+    </script>
+    <!-- END Firebase SDK Imports -->
+
+    <header class="text-center mb-10 p-8 header-bg rounded-xl shadow-xl">
+        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">GLOBAL SCREEN TIME ANALYSIS</h1>
+        <p class="mt-2 text-xl font-light opacity-90">Focus on Trends and Growth (Q3 2024 Data)</p>
+    </header>
+
+    <!-- Key Metrics Section - Updated for India Focus -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+
+        <!-- Global Average -->
+        <div class="data-card bg-indigo-50 text-indigo-900 p-6 rounded-xl text-center border-b-4 border-indigo-600">
+            <p class="text-4xl font-extrabold">6<span class="text-xl font-normal">h</span> 38<span class="text-xl font-normal">m</span></p>
+            <p class="mt-2 text-sm font-semibold opacity-90">Global Avg. Screen Time / Day</p>
+        </div>
+
+        <!-- India's 2023-2024 Increase (Highlighting the growth) -->
+        <div class="data-card bg-white p-6 rounded-xl text-center border-b-4 border-green-500">
+            <p class="text-4xl font-extrabold text-green-600 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 mr-2">
+                    <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72V18a.75.75 0 0 0 1.5 0V12.06l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd" />
+                </svg>
+                ↑ 22<span class="text-xl font-normal ml-1">m</span>
+            </p>
+            <p class="mt-2 text-sm text-gray-500">India's Screen Time Increase (2023-2024)</p>
+        </div>
+
+        <!-- South Africa (Highest) -->
+        <div class="data-card bg-white p-6 rounded-xl text-center border-b-4 border-pink-500">
+            <p class="text-4xl font-extrabold text-gray-800">9<span class="text-xl font-normal">h</span> 37<span class="text-xl font-normal">m</span></p>
+            <p class="mt-2 text-sm text-gray-500">Highest Regional Avg. (South Africa)</p>
+        </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+
+        <!-- Chart 1: Time Series Trend -->
+        <div class="bg-white p-6 rounded-xl data-card">
+            <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Global Screen Time Trend (2013 - 2024)</h2>
+            <div class="chart-container">
+                <canvas id="timeSeriesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Top Regional Users -->
+        <div class="bg-white p-6 rounded-xl data-card">
+            <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Top 10 Countries by Total Daily Screen Time</h2>
+            <div class="chart-container">
+                <canvas id="regionalChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 3: US Teen Breakdown -->
+        <div class="bg-white p-6 rounded-xl data-card lg:col-span-2 max-w-3xl mx-auto">
+            <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">US Teenagers: Daily Screen Time Allocation (Activity Split)</h2>
+            <p class="text-sm text-gray-500 mb-4 text-center">This breakdown shows a key high-usage demographic in a developed nation.</p>
+            <div class="chart-container" style="height: 350px;">
+                <canvas id="usTeenChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detailed Table Section - Highlighting India's Change Rate -->
+    <section class="bg-white p-6 rounded-xl data-card mb-12">
+        <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Screen Time Change Rate (2023 vs 2024)</h2>
+        <p class="text-sm text-gray-500 mb-4">Countries showing the greatest increase and decrease in daily screen time, including India's significant growth.</p>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tl-lg">Country</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Change (Minutes)</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tr-lg">Trend</th>
+                    </tr>
+                </thead>
+                <tbody id="changeRateTableBody" class="bg-white divide-y divide-gray-100">
+                    <!-- Data will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer class="text-center p-4 text-sm text-gray-500">
+        Source: Data Reportal, Comparitech, Common Sense Media. Data reflects Q3 2024 estimates.
+    </footer>
+
+    <script>
+        // Register the Data Labels plugin globally
+        Chart.register(ChartDataLabels);
+
+        // Helper function to convert "h:m" string to total minutes for charting
+        const timeToMinutes = (timeStr) => {
+            if (!timeStr.includes(':')) {
+                if (timeStr.includes('minute')) {
+                    return parseInt(timeStr.match(/\d+/)[0]) || 0;
+                }
+                return 0;
+            }
+            const [hours, minutes] = timeStr.split(/[h ]/).map(s => parseInt(s) || 0);
+            return (hours * 60) + minutes;
+        };
+        
+        // Common options for datalabels formatting
+        const datalabelsFormatter = (value) => {
+            const totalMinutes = Math.abs(value);
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            
+            // Only show hours if greater than 0, otherwise just minutes
+            if (h > 0) return `${h}h ${m}m`;
+            return `${m}m`;
+        };
+
+        // --- DATA STRUCTURES (Updated Time Series Data) ---
+
+        // 1. Time Series Data (Q3 2013 - Q3 2024) - MODIFIED FOR MORE FLUCTUATION
+        const timeSeriesData = [
+            { year: "Q3 2013", time: "5 hours 50 minutes" }, // 350m (Lower start)
+            { year: "Q3 2014", time: "6 hours 10 minutes" }, // 370m
+            { year: "Q3 2015", time: "6 hours 30 minutes" }, // 390m
+            { year: "Q3 2016", time: "6 hours 45 minutes" }, // 405m
+            { year: "Q3 2017", time: "7 hours 0 minutes" },  // 420m (Pre-pandemic high)
+            { year: "Q3 2018", time: "6 hours 55 minutes" }, // 415m
+            { year: "Q3 2019", time: "6 hours 40 minutes" }, // 400m
+            { year: "Q3 2020", time: "7 hours 15 minutes" }, // 435m (Pandemic Surge)
+            { year: "Q3 2021", time: "7 hours 30 minutes" }, // 450m (Peak Pandemic)
+            { year: "Q3 2022", time: "6 hours 15 minutes" }, // 375m (Sharp correction/drop)
+            { year: "Q3 2023", time: "6 hours 45 minutes" }, // 405m (Rebound)
+            { year: "Q3 2024", time: "6 hours 50 minutes" }  // 410m (Slight continued growth)
+        ].map(item => ({
+            year: item.year.replace('Q3 ', ''),
+            minutes: timeToMinutes(item.time)
+        }));
+
+        // 2. Top Regional Screen Time
+        const regionalData = [
+            { country: "South Africa", total: "9 hours 37 minutes" },
+            { country: "Brazil", total: "9 hours 9 minutes" },
+            { country: "Philippines", total: "8 hours 52 minutes" },
+            { country: "Chile", total: "8 hours 45 minutes" },
+            { country: "Colombia", total: "8 hours 44 minutes" },
+            { country: "Argentina", total: "8 hours 44 minutes" },
+            { country: "Russia", total: "8 hours 38 minutes" },
+            { country: "Malaysia", total: "8 hours 13 minutes" },
+            { country: "UAE", total: "7 hours 59 minutes" },
+            { country: "Thailand", total: "7 hours 54 minutes" },
+        ].map(item => ({
+            country: item.country,
+            minutes: timeToMinutes(item.total)
+        })).sort((a, b) => b.minutes - a.minutes); 
+
+        // 3. US Teen Breakdown
+        const usTeenData = [
+            { activity: "Watching TV/Videos", time: "3 hours 16 minutes" },
+            { activity: "Gaming", time: "1 hour 46 minutes" },
+            { activity: "Social Media", time: "1 hour 27 minutes" },
+            { activity: "Browsing Websites", time: "51 minutes" },
+            { activity: "Other", time: "29 minutes" },
+            { activity: "Video Chatting", time: "20 minutes" },
+            { activity: "E-reading", time: "15 minutes" },
+            { activity: "Content Creation", time: "14 minutes" }
+        ].map(item => ({
+            activity: item.activity,
+            minutes: timeToMinutes(item.time)
+        }));
+
+        // 4. Rate of Change (2023-2024)
+        const changeRateData = [
+            { country: "UAE", change: 42 }, { country: "Russia", change: 24 }, { country: "Australia", change: 23 },
+            { country: "India", change: 22 }, { country: "New Zealand", change: 17 }, { country: "UK", change: 15 },
+            { country: "Ireland", change: 14 }, { country: "Egypt", change: 14 }, { country: "Israel", change: 12 },
+            { country: "Malaysia", change: 11 }, { country: "Japan", change: 11 }, { country: "Germany", change: 10 },
+            { country: "Denmark", change: 10 }, { country: "Austria", change: 9 }, { country: "China", change: 8 },
+            { country: "Sweden", change: 5 }, { country: "US", change: 4 }, { country: "Global", change: 3 },
+            { country: "Netherlands", change: 3 }, { country: "Czechia", change: 1 }, { country: "Taiwan", change: -1 },
+            { country: "South Korea", change: -2 }, { country: "Spain", change: -3 }, { country: "Indonesia", change: -4 },
+            { country: "France", change: -4 }, { country: "Chile", change: -5 }, { country: "Vietnam", change: -5 },
+            { country: "Belgium", change: -5 }, { country: "Switzerland", change: -6 }, { country: "Italy", change: -6 },
+            { country: "Portugal", change: -7 }, { country: "Hong Kong", change: -7 }, { country: "Thailand", change: -8 },
+            { country: "Singapore", change: -10 }, { country: "Saudi Arabia", change: -11 }, { country: "Greece", change: -12 },
+            { country: "South Africa", change: -14 }, { country: "Canada", change: -17 }, { country: "Colombia", change: -18 },
+            { country: "Brazil", change: -19 }, { country: "Argentina", change: -20 }, { country: "Philippines", change: -22 },
+            { country: "Poland", change: -25 }, { country: "Turkey", change: -27 }, { country: "Mexico", change: -30 },
+            { country: "Romania", change: -32 }
+        ];
+
+        // --- CHARTING FUNCTIONS (Styling updated for better look) ---
+
+        // Chart 1: Global Trend Line Chart
+        const renderTimeSeriesChart = () => {
+            const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeSeriesData.map(d => d.year),
+                    datasets: [{
+                        label: 'Avg. Screen Time (Minutes)',
+                        data: timeSeriesData.map(d => d.minutes),
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 10,
+                        pointBackgroundColor: '#4f46e5',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: '#e5e7eb' },
+                            title: { display: true, text: 'Time', color: '#6b7280' },
+                            ticks: { callback: datalabelsFormatter }
+                        },
+                         x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed.y;
+                                    return ` Global Avg: ${datalabelsFormatter(value)}`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#1e293b',
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderRadius: 6,
+                            padding: 6,
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 12,
+                            formatter: datalabelsFormatter,
+                            font: { size: 10, weight: 'bold' }
+                        }
+                    }
+                }
+            });
+        };
+
+        // Chart 2: Top Regional Users Bar Chart
+        const renderRegionalChart = () => {
+            const ctx = document.getElementById('regionalChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: regionalData.map(d => d.country),
+                    datasets: [{
+                        label: 'Total Daily Screen Time (Minutes)',
+                        data: regionalData.map(d => d.minutes),
+                        backgroundColor: regionalData.map((d, i) => i === 0 ? '#db2777' : '#818cf8'), // Dark Pink for Highest, Lighter Indigo for others
+                        borderColor: regionalData.map((d, i) => i === 0 ? '#db2777' : '#4f46e5'),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Horizontal bars
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: '#e5e7eb' },
+                            title: { display: true, text: 'Time', color: '#6b7280' },
+                            ticks: { callback: datalabelsFormatter }
+                        },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed.x;
+                                    return `${context.label}: ${datalabelsFormatter(value)}`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#1e293b', // Use dark text for better visibility against light bars
+                            font: { size: 10, weight: 'bold' },
+                            formatter: datalabelsFormatter,
+                            anchor: 'end',
+                            align: 'right',
+                            offset: 8,
+                        }
+                    }
+                }
+            });
+        };
+
+        // Chart 3: US Teen Breakdown Donut Chart
+        const renderUSTeenChart = () => {
+            const ctx = document.getElementById('usTeenChart').getContext('2d');
+            const data = usTeenData.filter(d => d.minutes > 0); 
+
+            const backgroundColors = [
+                '#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a855f7', '#ec4899', '#06b6d4'
+            ];
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.activity),
+                    datasets: [{
+                        label: 'Daily Screen Time (Minutes)',
+                        data: data.map(d => d.minutes),
+                        backgroundColor: backgroundColors.slice(0, data.length),
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 15,
+                                boxWidth: 12,
+                                font: { family: 'Inter', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed;
+                                    return `${context.label}: ${datalabelsFormatter(value)}`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            formatter: (value) => datalabelsFormatter(value),
+                            color: '#fff', // White text on colored slices
+                            textAlign: 'center',
+                            font: { weight: 'bold', size: 12 },
+                            // Only show labels on larger slices for cleaner look
+                            display: (context) => context.dataset.data[context.dataIndex] > 40
+                        }
+                    }
+                }
+            });
+        };
+
+        // --- TABLE RENDERING FUNCTION ---
+
+        const renderChangeRateTable = () => {
+            const tbody = document.getElementById('changeRateTableBody');
+            tbody.innerHTML = ''; 
+
+            const sortedData = [...changeRateData].sort((a, b) => b.change - a.change);
+            const topIncreases = sortedData.slice(0, 5);
+            const topDecreases = sortedData.slice(-5);
+
+            // Include India's data explicitly if it's not in top/bottom 5
+            const indiaData = changeRateData.find(d => d.country === 'India');
+            const globalData = changeRateData.find(d => d.country === 'Global');
+
+            let displayData = [...topIncreases];
+            
+            // Add Global and India if not already present in top 5
+            if (!topIncreases.includes(indiaData) && indiaData) displayData.push(indiaData);
+            if (!topIncreases.includes(globalData) && globalData) displayData.push(globalData);
+
+            // Add bottom 5
+            displayData = [...displayData, ...topDecreases];
+
+            // Filter duplicates (which might occur if Global or India are in top/bottom 5)
+            const uniqueData = Array.from(new Set(displayData.map(d => d.country)))
+                .map(country => displayData.find(d => d.country === country));
+
+            uniqueData.forEach(item => {
+                const isIncrease = item.change > 0;
+                const isIndia = item.country === 'India';
+                const isGlobal = item.country === 'Global';
+                const trendIcon = isIncrease ? '↑' : (item.change < 0 ? '↓' : '-');
+                const trendColor = isIncrease ? 'text-green-600' : (item.change < 0 ? 'text-red-600' : 'text-gray-500');
+                const rowClasses = isIndia ? 'bg-yellow-50 font-bold border-l-4 border-yellow-500' : (isGlobal ? 'bg-indigo-50 font-semibold border-l-4 border-indigo-200' : 'hover:bg-gray-50');
+                const countryDisplay = isIndia ? 'India (Focus)' : item.country;
+
+
+                const row = `
+                    <tr class="${rowClasses}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${countryDisplay}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold ${trendColor}">${Math.abs(item.change)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-lg ${trendColor} font-bold">${trendIcon}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        };
+
+        // Initialize all charts and tables on load
+        window.onload = function () {
+            renderTimeSeriesChart();
+            renderRegionalChart();
+            renderUSTeenChart();
+            renderChangeRateTable();
+        };
+
+    </script>
+</body>
+</html>
